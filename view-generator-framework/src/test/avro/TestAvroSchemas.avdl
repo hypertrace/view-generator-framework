@@ -1,0 +1,22 @@
+@namespace("org.hypertrace.core.viewgenerator.test.api")
+protocol TestAvroSchemas {
+  record SpanTypeOne {
+    string span_id;
+
+    long start_time_millis = 0;
+
+    long end_time_millis = 0;
+
+    string span_kind;
+  }
+
+  record SpanTypeTwo {
+    string span_id;
+
+    long start_time_millis = 0;
+
+    long end_time_millis = 0;
+
+    string span_kind;
+  }
+}
