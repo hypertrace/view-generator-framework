@@ -24,26 +24,8 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.0")
-  implementation("org.hypertrace.core.flinkutils:flink-utils:0.1.0")
-  constraints {
-    implementation("com.google.guava:guava:29.0-jre") {
-      because("Deserialization of Untrusted Data [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-32236] in com.google.guava:guava@20.0\n" +
-          "   introduced by org.hypertrace.core.flinkutils:flink-utils@0.1.0 > io.confluent:kafka-avro-serializer@5.5.0 > io.confluent:kafka-schema-registry-client@5.5.0 > io.swagger:swagger-core@1.5.3 > com.google.guava:guava@18.0")
-    }
-    implementation("commons-codec:commons-codec:1.14") {
-      because("Information Exposure [Low Severity][https://snyk.io/vuln/SNYK-JAVA-COMMONSCODEC-561518] in commons-codec:commons-codec@1.10\n" +
-          "   introduced by org.hypertrace.core.serviceframework:platform-service-framework@0.1.0 > org.apache.httpcomponents:httpclient@4.5.12 > commons-codec:commons-codec@1.11")
-    }
-    implementation("org.hibernate.validator:hibernate-validator:6.1.5.Final") {
-      because("Cross-site Scripting (XSS) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-ORGHIBERNATEVALIDATOR-541187] in org.hibernate.validator:hibernate-validator@6.0.17.Final\n" +
-          "   introduced by org.hypertrace.core.flinkutils:flink-utils@0.1.0 > io.confluent:kafka-avro-serializer@5.5.0 > io.confluent:kafka-schema-registry-client@5.5.0 > org.glassfish.jersey.ext:jersey-bean-validation@2.30 > org.hibernate.validator:hibernate-validator@6.0.17.Final")
-    }
-    implementation("org.yaml:snakeyaml:1.26") {
-      because("Denial of Service (DoS) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-ORGYAML-537645] in org.yaml:snakeyaml@1.12\n" +
-          "   introduced by org.hypertrace.core.flinkutils:flink-utils@0.1.0 > io.confluent:kafka-avro-serializer@5.5.0 > io.confluent:kafka-schema-registry-client@5.5.0 > io.swagger:swagger-core@1.5.3 > com.fasterxml.jackson.dataformat:jackson-dataformat-yaml@2.4.5 > org.yaml:snakeyaml@1.12")
-    }
-  }
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.2")
+  implementation("org.hypertrace.core.flinkutils:flink-utils:0.1.1")
 
   implementation("org.apache.avro:avro:1.9.2")
 
