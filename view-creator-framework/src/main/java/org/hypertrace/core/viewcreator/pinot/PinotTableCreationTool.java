@@ -3,7 +3,6 @@ package org.hypertrace.core.viewcreator.pinot;
 import org.apache.pinot.common.config.TableConfig;
 import org.apache.pinot.spi.data.Schema;
 import org.hypertrace.core.viewcreator.ViewCreationSpec;
-import org.hypertrace.core.viewcreator.util.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,15 +17,6 @@ public class PinotTableCreationTool {
   }
 
   public void execute() {
-    final ViewCreationSpec.KafkaSpec kafkaSpec = KafkaUtils.getKafkaSpecFromViewGenerationSpec(viewCreationSpec);
-    if (kafkaSpec != null) {
-      LOGGER.info("Trying to create Kafka topic: {}", kafkaSpec);
-      final boolean createKafkaTopic = KafkaUtils.createKafkaTopic(kafkaSpec);
-      if (!createKafkaTopic) {
-        throw new RuntimeException("Failed to create Kafka topic.");
-      }
-    }
-
     final Schema pinotSchemaForView = PinotUtils.createPinotSchemaForView(viewCreationSpec);
     LOGGER.info("Convert Pinot Schema from View: {}", pinotSchemaForView);
     final boolean uploadPinotSchema = PinotUtils
