@@ -44,7 +44,6 @@ dependencies {
   // Needed for flink metric exporter. Used for Hypertrace and debugging.
   runtimeOnly("org.apache.flink:flink-metrics-slf4j:1.10.1")
 
-  testImplementation("org.apache.kafka:kafka-clients:5.5.0-ccs")
   testImplementation("org.junit.jupiter:junit-jupiter:5.6.2")
   testImplementation("org.mockito:mockito-core:3.3.3")
   testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:2.13.3")
