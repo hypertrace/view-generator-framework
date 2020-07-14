@@ -1,7 +1,13 @@
 package org.hypertrace.core.viewgenerator.service;
 
+import static org.hypertrace.core.viewgenerator.service.ViewGenerationJob.JobConfig.FLINK_SINK_CONFIG_PATH;
+import static org.hypertrace.core.viewgenerator.service.ViewGenerationJob.JobConfig.LOG_FAILURES_CONFIG;
+import static org.hypertrace.core.viewgenerator.service.ViewGenerationJob.JobConfig.VIEW_GENERATOR_CLASS_CONFIG;
+
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
+import java.util.Map;
+import java.util.Properties;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.flink.api.common.serialization.SerializationSchema;
@@ -13,13 +19,6 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.hypertrace.core.flinkutils.avro.RegistryBasedAvroSerde;
 import org.hypertrace.core.flinkutils.utils.FlinkUtils;
 import org.hypertrace.core.serviceframework.config.ConfigUtils;
-
-import java.util.Map;
-import java.util.Properties;
-
-import static org.hypertrace.core.viewgenerator.service.ViewGenerationJob.JobConfig.FLINK_SINK_CONFIG_PATH;
-import static org.hypertrace.core.viewgenerator.service.ViewGenerationJob.JobConfig.LOG_FAILURES_CONFIG;
-import static org.hypertrace.core.viewgenerator.service.ViewGenerationJob.JobConfig.VIEW_GENERATOR_CLASS_CONFIG;
 
 public class ViewGenerationJob {
   private final StreamExecutionEnvironment environment;
@@ -69,7 +68,9 @@ public class ViewGenerationJob {
           inputStream.process((ProcessFunction) processFunction).returns(processFunction.getViewClass());
 
       outputStream.addSink(FlinkUtils.getFlinkKafkaProducer(outputTopic,
-          new RegistryBasedAvroSerde(outputTopic, processFunction.getViewClass(), sinkSchemaRegistryConfig),
+          new RegistryBasedAvroSerde(outputTopic, processFunction.getViewClass(),
+              sinkSchemaRegistryConfig),
+          null/* By specifying null this will default to kafka producer's default partitioner i.e. round-robin*/,
           kafkaProducerConfig, logFailuresOnly)).name("Kafka/" + this.outputTopic);
     } catch (ConfigException.Missing e) {
       throw new RuntimeException("Required config missing.", e);
