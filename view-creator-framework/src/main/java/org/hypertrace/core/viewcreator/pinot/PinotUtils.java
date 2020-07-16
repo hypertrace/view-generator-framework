@@ -6,6 +6,7 @@ import com.typesafe.config.ConfigValue;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +37,7 @@ public class PinotUtils {
   private static final Logger LOGGER = LoggerFactory.getLogger(PinotUtils.class);
   private static final String MAP_KEYS_SUFFIX = "__KEYS";
   private static final String MAP_VALUES_SUFFIX = "__VALUES";
+  private static final String GLOBAL_DATA_RETENTION = "GLOBAL_DATA_RETENTION";
 
   public static String PINOT_CONFIGS_KEY = "pinot";
   public static String PINOT_STREAM_CONFIGS_KEY = "pinot.streamConfigs";
@@ -45,11 +47,17 @@ public class PinotUtils {
 
   public static String SIMPLE_AVRO_MESSAGE_DECODER = "org.apache.pinot.core.realtime.stream.SimpleAvroMessageDecoder";
   private static String PINOT_TABLES_CREATE_SUFFIX = "tables";
+  private static Duration GLOBAL = getGlobalDateRetentionDuration();
 
-
-  public static ViewCreationSpec.PinotTableSpec getPinotTableSpecFromViewGenerationSpec(ViewCreationSpec spec) {
+  public static ViewCreationSpec.PinotTableSpec getPinotTableSpecFromViewGenerationSpec(ViewCreationSpec spec, Duration global) {
     final ViewCreationSpec.PinotTableSpec pinotTableSpec = ConfigBeanFactory
         .create(spec.getViewGeneratorConfig().getConfig(PINOT_CONFIGS_KEY), ViewCreationSpec.PinotTableSpec.class);
+    if (global != null) {
+      LOGGER.info("inherit from global data retention duration {}.", global);
+      pinotTableSpec.setRetentionTimeValue(Long.toString(global.toHours()));
+      pinotTableSpec.setRetentionTimeUnit(TimeUnit.HOURS.name());
+    }
+
     final Config streamConfigs = spec.getViewGeneratorConfig().getConfig(PINOT_STREAM_CONFIGS_KEY);
     // ConfigBeanFactory will parse Map to nested structure. Try to reset streamConfigs as a flatten map.
     Map<String, Object> streamConfigsMap = new HashMap();
@@ -70,7 +78,8 @@ public class PinotUtils {
   }
 
   public static Schema createPinotSchemaForView(ViewCreationSpec spec) {
-    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(spec);
+    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(spec,
+        GLOBAL);
     String schemaName = spec.getViewName();
     org.apache.avro.Schema avroSchema = spec.getOutputSchema();
     TimeUnit timeUnit = pinotTableSpec.getTimeUnit();
@@ -84,7 +93,8 @@ public class PinotUtils {
   }
 
   public static boolean uploadPinotSchema(ViewCreationSpec spec, final Schema schema) {
-    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(spec);
+    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(spec,
+        GLOBAL);
     return uploadPinotSchema(pinotTableSpec.getControllerHost(), pinotTableSpec.getControllerPort(),
         schema);
   }
@@ -204,7 +214,7 @@ public class PinotUtils {
 
   public static TableConfig createPinotTable(ViewCreationSpec viewCreationSpec) {
     final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(
-        viewCreationSpec);
+        viewCreationSpec, GLOBAL);
     TableConfig tableConfig = new TableConfig.Builder(TableType.REALTIME)
         .setTableName(pinotTableSpec.getTableName())
         .setTimeColumnName(pinotTableSpec.getTimeColumn())
@@ -231,7 +241,8 @@ public class PinotUtils {
 
   public static boolean sendPinotTableCreationRequest(ViewCreationSpec spec,
                                                       final TableConfig tableConfig) {
-    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(spec);
+    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(spec,
+        GLOBAL);
     return sendPinotTableCreationRequest(pinotTableSpec.getControllerHost(),
         pinotTableSpec.getControllerPort(), tableConfig.toJsonConfigString());
   }
@@ -252,5 +263,14 @@ public class PinotUtils {
 
   private static String getControllerAddressForTableCreate(String controllerHost, String controllerPort) {
     return String.format("http://%s:%s/%s", controllerHost, controllerPort, PINOT_TABLES_CREATE_SUFFIX);
+  }
+
+  private static Duration getGlobalDateRetentionDuration() {
+    String global = System.getenv(GLOBAL_DATA_RETENTION);
+    if (global != null) {
+      return Duration.parse(global);
+    }
+    LOGGER.info("skipping global data retention duration override");
+    return null;
   }
 }

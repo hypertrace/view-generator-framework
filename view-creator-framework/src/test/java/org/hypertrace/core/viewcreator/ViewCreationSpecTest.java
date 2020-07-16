@@ -4,6 +4,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import java.io.File;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -21,9 +22,11 @@ public class ViewCreationSpecTest {
     Assertions.assertEquals(viewCreationSpec.getViewName(), "myView");
     Assertions.assertEquals(viewCreationSpec.getOutputSchema(), TestView.getClassSchema());
 
+    Duration global = Duration.parse("P2D");
+
     // Test PinotTableSpec
     final ViewCreationSpec.PinotTableSpec pinotTableSpec = PinotUtils
-        .getPinotTableSpecFromViewGenerationSpec(viewCreationSpec);
+        .getPinotTableSpecFromViewGenerationSpec(viewCreationSpec, global);
     Assertions.assertEquals(pinotTableSpec.getControllerHost(), "localhost");
     Assertions.assertEquals(pinotTableSpec.getControllerPort(), "9000");
     Assertions.assertEquals(pinotTableSpec.getTimeColumn(), "creation_time_millis");
@@ -40,8 +43,8 @@ public class ViewCreationSpecTest {
     Assertions.assertEquals(pinotTableSpec.getTableName(), "myView1");
     Assertions.assertEquals(pinotTableSpec.getLoadMode(), "MMAP");
     Assertions.assertEquals(pinotTableSpec.getNumReplicas(), 1);
-    Assertions.assertEquals(pinotTableSpec.getRetentionTimeUnit(), "DAYS");
-    Assertions.assertEquals(pinotTableSpec.getRetentionTimeValue(), "3");
+    Assertions.assertEquals(pinotTableSpec.getRetentionTimeUnit(), TimeUnit.HOURS.name());
+    Assertions.assertEquals(pinotTableSpec.getRetentionTimeValue(), "48");
     Assertions.assertEquals(pinotTableSpec.getBrokerTenant(), "defaultBroker");
     Assertions.assertEquals(pinotTableSpec.getServerTenant(), "defaultServer");
     Assertions.assertEquals(pinotTableSpec.getSegmentAssignmentStrategy(),
@@ -69,7 +72,7 @@ public class ViewCreationSpecTest {
   public void testAvroDecoderSchemaIsAutoSetInTableCreationRequest() {
     ViewCreationSpec viewCreationSpec = createViewCreationSpecUsingConfig("sample-view-generation-spec-without-schema.conf");
     final Map<String, Object> streamConfigs = PinotUtils
-        .getPinotTableSpecFromViewGenerationSpec(viewCreationSpec).getStreamConfigs();
+        .getPinotTableSpecFromViewGenerationSpec(viewCreationSpec, null).getStreamConfigs();
     Assertions.assertEquals(streamConfigs.get("stream.kafka.decoder.prop.schema"),
         TestView.getClassSchema().toString());
   }
