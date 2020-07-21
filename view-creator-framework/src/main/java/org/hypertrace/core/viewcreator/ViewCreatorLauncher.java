@@ -1,75 +1,49 @@
 package org.hypertrace.core.viewcreator;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Parameter;
+import java.util.List;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
-import org.hypertrace.core.viewcreator.pinot.PinotMultiTableCreationTool;
-import org.hypertrace.core.viewcreator.pinot.PinotTableCreationTool;
+import org.hypertrace.core.serviceframework.PlatformService;
+import org.hypertrace.core.serviceframework.config.ConfigClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * ViewCreatorLauncher creates Pinot tables as specified in the config.
- */
-public class ViewCreatorLauncher {
+/** ViewCreatorLauncher creates Pinot tables as specified in the config. */
+public class ViewCreatorLauncher extends PlatformService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ViewCreatorLauncher.class);
+  private static final String TOOL_CLASS = "tool.class";
+  private static final String VIEWS = "views";
+  private static final String SERVICE_NAME_CONFIG = "service.name";
 
-  public static void main(String[] args) {
-    updateRuntime();
-    launch(args);
+  public ViewCreatorLauncher(ConfigClient configClient) {
+    super(configClient);
   }
 
-  private static void launch(String[] args) {
-    String configFilePath = null;
-    if (args.length > 0) {
-      configFilePath = args[0];
-      LOGGER.info("Loading config file path: {}", configFilePath);
-    } else {
-      LOGGER.error("A config file path is required to launch the job/services.");
-      System.exit(1);
-    }
-    Config fileConfig = ConfigFactory.parseFile(new File(configFilePath));
-    Config configs = ConfigFactory.load(fileConfig);
+  @Override
+  protected void doInit() {}
 
-    final String mainClass = configs.getString("mainClass");
-    switch (mainClass) {
-      case "org.hypertrace.core.viewcreator.pinot.PinotTableCreationTool":
-        try {
-          ViewCreationSpec viewCreationSpec = ViewCreationSpec
-              .parse(configs);
-          PinotTableCreationTool tool = new PinotTableCreationTool(viewCreationSpec);
-          tool.execute();
-        } catch (Exception e) {
-          LOGGER.error("Exception while executing PinotTableCreationTool.execute()", e);
-          System.exit(1);
-        }
-        break;
-      case "org.hypertrace.core.viewcreator.pinot.PinotMultiTableCreationTool":
-        try {
-          PinotMultiTableCreationTool tool = new PinotMultiTableCreationTool(configs.getStringList("views"));
-          tool.execute();
-        } catch (Exception e) {
-          LOGGER.error("Exception while executing PinotMultiTableCreationTool.execute()", e);
-          System.exit(1);
-        }
-        break;
-      default:
-        System.exit(1);
-        LOGGER.error("Cannot find the class to execute. Did not create the tables");
+  @Override
+  protected void doStart() {
+    try {
+      getTableCreationTool(getAppConfig()).create();
+      shutdown();
+    } catch (ClassNotFoundException
+        | IllegalAccessException
+        | InvocationTargetException
+        | InstantiationException e) {
+      throw new RuntimeException(e);
     }
   }
 
-  private static void updateRuntime() {
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      finalizeLauncher();
-    }));
-  }
-
-  private static void finalizeLauncher() {
+  @Override
+  protected void doStop() {
     String istioPilotQuitEndpoint = "http://127.0.0.1:15020/quitquitquit";
     HttpClient httpclient = HttpClients.createDefault();
     HttpPost httppost = new HttpPost(istioPilotQuitEndpoint);
@@ -79,5 +53,40 @@ public class ViewCreatorLauncher {
     } catch (IOException e) {
       LOGGER.error("Error while calling quitquitquit", e);
     }
+  }
+
+  @Override
+  public boolean healthCheck() {
+    return true;
+  }
+
+  @Override
+  public String getServiceName() {
+    return getAppConfig().getString(SERVICE_NAME_CONFIG);
+  }
+
+  @VisibleForTesting
+  TableCreationTool getTableCreationTool(Config config)
+      throws ClassNotFoundException, IllegalAccessException, InvocationTargetException,
+          InstantiationException {
+    Class clz = Class.forName(getAppConfig().getString(TOOL_CLASS));
+    if (!TableCreationTool.class.isAssignableFrom(clz)) {
+      throw new ClassNotFoundException("class is not table creation tool");
+    }
+
+    for (Constructor ctor : clz.getConstructors()) {
+      Parameter[] parameters = ctor.getParameters();
+      if (parameters != null && parameters.length == 1) {
+        if (ViewCreationSpec.class.equals(parameters[0].getType())) {
+          ViewCreationSpec viewCreationSpec = ViewCreationSpec.parse(config);
+          return (TableCreationTool) ctor.newInstance(viewCreationSpec);
+        } else if (List.class.equals(parameters[0].getType())) {
+          List<String> views = config.getStringList(VIEWS);
+          return (TableCreationTool) ctor.newInstance(views);
+        }
+      }
+    }
+
+    throw new ClassNotFoundException("class doesn't have matching constructor");
   }
 }

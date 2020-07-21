@@ -25,6 +25,7 @@ tasks.test {
 
 dependencies {
   implementation("org.hypertrace.core.eventstore:event-store:0.1.1")
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.3")
   constraints {
     implementation("com.google.guava:guava:29.0-jre") {
       because("Deserialization of Untrusted Data [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-32236] in com.google.guava:guava@20.0\n" +
