@@ -8,9 +8,12 @@ import java.lang.reflect.Parameter;
 import java.util.List;
 import org.hypertrace.core.serviceframework.PlatformService;
 import org.hypertrace.core.serviceframework.config.ConfigClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** ViewCreatorLauncher creates Pinot tables as specified in the config. */
 public class ViewCreatorLauncher extends PlatformService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ViewCreatorLauncher.class);
   private static final String TOOL_CLASS = "tool.class";
   private static final String VIEWS = "views";
   private static final String SERVICE_NAME_CONFIG = "service.name";
@@ -27,11 +30,10 @@ public class ViewCreatorLauncher extends PlatformService {
     try {
       getTableCreationTool(getAppConfig()).create();
       shutdown();
-    } catch (ClassNotFoundException
-        | IllegalAccessException
-        | InvocationTargetException
-        | InstantiationException e) {
-      throw new RuntimeException(e);
+    } catch (Exception e) {
+      LOGGER.error("Error in doStart", e);
+      // Important to exit(1) so that the guardian process(eg k8s or systemd) can restart the job
+      System.exit(1);
     }
   }
 
