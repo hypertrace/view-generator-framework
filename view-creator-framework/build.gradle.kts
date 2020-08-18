@@ -87,6 +87,11 @@ dependencies {
       because("Information Exposure [High Severity][https://snyk.io/vuln/SNYK-JAVA-IONETTY-30430] in io.netty:netty@3.9.6.Final\n" +
           "   introduced by org.apache.pinot:pinot-tools@0.3.0 > org.apache.pinot:pinot-common@0.3.0 > io.netty:netty@3.9.6.Final")
     }
+
+    implementation("org.glassfish.jersey.core:jersey-server:2.31") {
+      because("XML Entity Expansion [High Severity][https://snyk.io/vuln/SNYK-JAVA-ORGGLASSFISHJERSEYMEDIA-595972] in org.glassfish.jersey.media:jersey-media-jaxb@2.28\n" +
+              "    introduced by org.apache.pinot:pinot-tools@0.3.0 > org.apache.pinot:pinot-common@0.3.0 > org.glassfish.jersey.core:jersey-server@2.28 > org.glassfish.jersey.media:jersey-media-jaxb@2.28 and 1 other path(s)\n")
+    }
   }
 
   implementation("org.apache.avro:avro:1.9.2")
