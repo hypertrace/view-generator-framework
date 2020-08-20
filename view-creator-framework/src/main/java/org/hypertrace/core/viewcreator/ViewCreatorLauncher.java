@@ -16,7 +16,6 @@ public class ViewCreatorLauncher extends PlatformService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ViewCreatorLauncher.class);
   private static final String TOOL_CLASS = "tool.class";
   private static final String VIEWS = "views";
-  private static final String SERVICE_NAME_CONFIG = "service.name";
 
   public ViewCreatorLauncher(ConfigClient configClient) {
     super(configClient);
@@ -43,11 +42,6 @@ public class ViewCreatorLauncher extends PlatformService {
   @Override
   public boolean healthCheck() {
     return true;
-  }
-
-  @Override
-  public String getServiceName() {
-    return getAppConfig().getString(SERVICE_NAME_CONFIG);
   }
 
   @VisibleForTesting
