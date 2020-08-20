@@ -14,9 +14,6 @@ public class ViewGeneratorLauncher extends PlatformService {
 
   private static Logger LOGGER = LoggerFactory.getLogger(ViewGeneratorLauncher.class);
 
-  private static final String SERVICE_NAME_CONFIG = "service.name";
-
-  private String serviceName;
   private ViewGenerationJob job;
   private StreamExecutionEnvironment environment;
 
@@ -27,7 +24,6 @@ public class ViewGeneratorLauncher extends PlatformService {
   @Override
   protected void doInit() {
     try {
-      serviceName = getAppConfig().getString(SERVICE_NAME_CONFIG);
       environment = FlinkEnvironmentFactory.createExecutionEnv(getAppConfig());
       job = new ViewGenerationJob(environment, getAppConfig());
       job.init();
@@ -40,7 +36,7 @@ public class ViewGeneratorLauncher extends PlatformService {
   @Override
   protected void doStart() {
     try {
-      environment.execute(serviceName);
+      environment.execute(getServiceName());
     } catch (Exception e) {
       LOGGER.error("Got exception during ViewGenerationJob.", e);
       // Since the job couldn't recover from the error state like this.
@@ -58,10 +54,5 @@ public class ViewGeneratorLauncher extends PlatformService {
   @Override
   public boolean healthCheck() {
     return true;
-  }
-
-  @Override
-  public String getServiceName() {
-    return serviceName;
   }
 }
