@@ -20,10 +20,8 @@ public class MultiViewGeneratorLauncher extends PlatformService {
 
   private static Logger LOGGER = LoggerFactory.getLogger(MultiViewGeneratorLauncher.class);
 
-  private static final String SERVICE_NAME_CONFIG = "service.name";
   private static final String VIEW_GENERATORS_CONFIG = "view.generators";
 
-  private String serviceName;
   private List<ViewGenerationJob> viewGenerationJobs;
   private StreamExecutionEnvironment environment;
 
@@ -34,7 +32,6 @@ public class MultiViewGeneratorLauncher extends PlatformService {
   @Override
   protected void doInit() {
     try {
-      serviceName = getAppConfig().getString(SERVICE_NAME_CONFIG);
       viewGenerationJobs = new ArrayList<>();
 
       List<String> viewGenNames = getAppConfig().getStringList(VIEW_GENERATORS_CONFIG);
@@ -67,7 +64,7 @@ public class MultiViewGeneratorLauncher extends PlatformService {
   @Override
   protected void doStart() {
     try {
-      environment.execute(serviceName);
+      environment.execute(getServiceName());
     } catch (Exception e) {
       LOGGER.error("Error occurred in view generation", e);
       // Since the job couldn't recover from the error state like this.
@@ -87,8 +84,4 @@ public class MultiViewGeneratorLauncher extends PlatformService {
     return true;
   }
 
-  @Override
-  public String getServiceName() {
-    return serviceName;
-  }
 }
