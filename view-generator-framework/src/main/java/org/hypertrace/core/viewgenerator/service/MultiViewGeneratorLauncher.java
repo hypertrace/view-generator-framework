@@ -1,6 +1,5 @@
 package org.hypertrace.core.viewgenerator.service;
 
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.JOB_CONFIG;
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.KAFKA_STREAMS_CONFIG_KEY;
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.VIEW_GENERATORS_CONFIG;
 
@@ -9,13 +8,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.errors.LogAndContinueExceptionHandler;
 import org.apache.kafka.streams.kstream.KStream;
 import org.hypertrace.core.kafkastreams.framework.KafkaStreamsApp;
-import org.hypertrace.core.kafkastreams.framework.timestampextractors.UseWallclockTimeOnInvalidTimestamp;
 import org.hypertrace.core.serviceframework.config.ConfigClient;
 import org.hypertrace.core.serviceframework.config.ConfigClientFactory;
 import org.hypertrace.core.serviceframework.config.ConfigUtils;
@@ -26,8 +21,8 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
 
   private static final Logger logger = LoggerFactory.getLogger(MultiViewGeneratorLauncher.class);
 
-  private List<ViewGeneratorLauncher> viewGeneratorLaunchers;
-  private Map<String, Config> viewGenConfigs = new HashMap<>();
+  private final List<ViewGeneratorLauncher> viewGeneratorLaunchers;
+  private final Map<String, Config> viewGenConfigs;
 
   public MultiViewGeneratorLauncher(ConfigClient configClient) {
     super(configClient);
@@ -36,21 +31,15 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
   }
 
   @Override
-  public StreamsBuilder buildTopology(Properties properties, StreamsBuilder streamsBuilder,
+  public StreamsBuilder buildTopology(Map<String, Object> properties, StreamsBuilder streamsBuilder,
       Map<String, KStream<?, ?>> map) {
-    List<String> viewGenNames = (List<String>) properties.get(VIEW_GENERATORS_CONFIG);
-    if (viewGeneratorLaunchers == null) {
-      viewGeneratorLaunchers = new ArrayList<>();
-    }
-    if (viewGenConfigs == null) {
-      viewGenConfigs = new HashMap<>();
-    }
-    viewGenNames.stream().forEach(viewGen -> {
+    List<String> viewGenNames = getAppConfig().getStringList(VIEW_GENERATORS_CONFIG);
+    viewGenNames.forEach(viewGen -> {
       viewGeneratorLaunchers.add(createViewGenJob(viewGen));
     });
     for (ViewGeneratorLauncher job : viewGeneratorLaunchers) {
       Config config = viewGenConfigs.get(job.getViewGenName());
-      Properties props = job.getStreamsConfig(config);
+      Map<String, Object> props = job.getStreamsConfig(config);
       streamsBuilder = job.buildTopology(props, streamsBuilder, map);
     }
 
@@ -58,18 +47,9 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
   }
 
   @Override
-  public Properties getStreamsConfig(Config config) {
-    Properties properties = new Properties();
-    properties.putAll(ConfigUtils.getFlatMapConfig(config, KAFKA_STREAMS_CONFIG_KEY));
-
-    properties.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG,
-        UseWallclockTimeOnInvalidTimestamp.class);
-    properties.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG,
-        LogAndContinueExceptionHandler.class);
-
-    properties.put(VIEW_GENERATORS_CONFIG, config.getStringList(VIEW_GENERATORS_CONFIG));
-    properties.put(JOB_CONFIG, config);
-
+  public Map<String, Object> getStreamsConfig(Config config) {
+    Map<String, Object> properties = new HashMap<>(
+        ConfigUtils.getFlatMapConfig(config, KAFKA_STREAMS_CONFIG_KEY));
     return properties;
   }
 
@@ -86,6 +66,9 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
 
     Config viewGenConfig = configClient.getConfig(viewGen, cluster, pod, container);
     viewGenConfigs.put(viewGen, viewGenConfig);
-    return new ViewGeneratorLauncher(configClient, viewGen);
+    ViewGeneratorLauncher viewGeneratorLauncher = new ViewGeneratorLauncher(configClient);
+    viewGeneratorLauncher.setViewGenName(viewGen);
+    viewGeneratorLauncher.setConfig(viewGenConfig);
+    return viewGeneratorLauncher;
   }
 }
