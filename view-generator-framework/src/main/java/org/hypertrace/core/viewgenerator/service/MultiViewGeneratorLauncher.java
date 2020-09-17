@@ -7,7 +7,6 @@ import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.V
 
 import com.typesafe.config.Config;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -107,13 +106,5 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
     viewGeneratorLauncher.setViewGenName(viewGen);
     viewGeneratorLauncher.setConfig(viewGenConfig);
     return viewGeneratorLauncher;
-  }
-
-  private void addProperties(Map<String, Object> baseProps, Map<String, Object> props) {
-    props.forEach((k, v) -> {
-      if (!baseProps.containsKey(k)) {
-        baseProps.put(k, v);
-      }
-    });
   }
 }
