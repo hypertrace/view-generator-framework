@@ -24,14 +24,11 @@ import org.slf4j.LoggerFactory;
 public class ViewGeneratorLauncher extends KafkaStreamsApp {
 
   private static final Logger logger = LoggerFactory.getLogger(ViewGeneratorLauncher.class);
-  private static final String VIEW_GEN_JOB_CONFIG = "view-gen-job-config";
-
+  private static final String DEFAULT_VIEW_GEN_JOB_CONFIG_KEY = "view-gen";
   private String viewGenName;
-  private Config config;
 
   public ViewGeneratorLauncher(ConfigClient configClient) {
     super(configClient);
-    setViewGenName(getAppConfig().getString("service.name"));
   }
 
   public String getViewGenName() {
@@ -40,19 +37,6 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
 
   public void setViewGenName(String viewGenName) {
     this.viewGenName = viewGenName;
-  }
-
-  public Config getConfig() {
-    if (config == null) {
-      return getAppConfig();
-    }
-    return config;
-  }
-
-  public void setConfig(Config config) {
-    if (this.config == null && config != null) {
-      this.config = config;
-    }
   }
 
   @Override
@@ -97,7 +81,8 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
 
   @Override
   public String getJobConfigKey() {
-    return getViewGenName();
+    String jobConfigKey = getViewGenName();
+    return jobConfigKey != null ? jobConfigKey : DEFAULT_VIEW_GEN_JOB_CONFIG_KEY;
   }
 
   @Override
