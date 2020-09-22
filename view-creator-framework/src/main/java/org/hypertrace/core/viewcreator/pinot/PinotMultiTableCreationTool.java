@@ -12,7 +12,7 @@ public class PinotMultiTableCreationTool implements TableCreationTool {
   private static final String CLUSTER_NAME = "cluster.name";
   private static final String POD_NAME = "pod.name";
   private static final String CONTAINER_NAME = "container.name";
-  private List<String> viewsToCreate;
+  private final List<String> viewsToCreate;
 
   public PinotMultiTableCreationTool(List<String> viewsToCreate) {
     this.viewsToCreate = viewsToCreate;
@@ -20,14 +20,13 @@ public class PinotMultiTableCreationTool implements TableCreationTool {
 
   @Override
   public void create() {
-    viewsToCreate.stream()
-        .forEach(
-            viewName -> {
-              ViewCreationSpec viewCreationSpec = parseViewCreationSpec(viewName);
-              PinotTableCreationTool tableCreationTool =
-                  new PinotTableCreationTool(viewCreationSpec);
-              tableCreationTool.create();
-            });
+    viewsToCreate.forEach(
+        viewName -> {
+          ViewCreationSpec viewCreationSpec = parseViewCreationSpec(viewName);
+          PinotTableCreationTool tableCreationTool =
+              new PinotTableCreationTool(viewCreationSpec);
+          tableCreationTool.create();
+        });
   }
 
   private ViewCreationSpec parseViewCreationSpec(String viewName) {
