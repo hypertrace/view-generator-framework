@@ -59,7 +59,8 @@ jobs:
       - gradle:
           args: copyAllReports --output-dir=/tmp/test-reports
           when: always
-      - codecov/upload
+      - codecov/upload:
+          flags: unit
       - store_test_results:
           path: /tmp/test-reports
       - store_artifacts:
