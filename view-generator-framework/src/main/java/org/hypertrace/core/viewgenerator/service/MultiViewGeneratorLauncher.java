@@ -26,8 +26,11 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
   private static final Logger logger = LoggerFactory.getLogger(MultiViewGeneratorLauncher.class);
   private static final String MULTI_VIEW_GEN_JOB_CONFIG = "multi-view-gen-job-config";
 
+  private Map<String, Config> viewGenConfigs;
+
   public MultiViewGeneratorLauncher(ConfigClient configClient) {
     super(configClient);
+    viewGenConfigs = new HashMap<>();
   }
 
   @Override
@@ -39,21 +42,19 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
     for (String viewGen : viewGenNames) {
       ConfigClient client = ConfigClientFactory.getClient();
       Config viewGenConfig = getSubJobConfig(client, viewGen);
+      viewGenConfigs.put(viewGen, viewGenConfig);
+
+      // build using its own job config and properties
       ViewGeneratorLauncher viewGenJob = createViewGenJob(client, viewGen);
       Map<String, Object> viewGenProperties = viewGenJob.getStreamsConfig(viewGenConfig);
       viewGenProperties.put(viewGenJob.getJobConfigKey(), viewGenConfig);
       streamsBuilder = viewGenJob.buildTopology(viewGenProperties, streamsBuilder, map);
+
+      // retains the job specific config in main properties which is passed as context if need be.
       properties.put(viewGenJob.getJobConfigKey(), viewGenConfig);
     }
 
     return streamsBuilder;
-  }
-
-  @Override
-  public Map<String, Object> getStreamsConfig(Config config) {
-    Map<String, Object> properties = new HashMap<>(
-        ConfigUtils.getFlatMapConfig(config, KAFKA_STREAMS_CONFIG_KEY));
-    return properties;
   }
 
   @Override
@@ -71,7 +72,7 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
     List<String> viewGenNames = getViewGenName(properties);
     Set<String> inputTopics = new HashSet<>();
     for (String viewGen : viewGenNames) {
-      Config viewGenConfig = (Config) properties.get(viewGen);
+      Config viewGenConfig = viewGenConfigs.get(viewGen);
       inputTopics.add(viewGenConfig.getString(INPUT_TOPIC_CONFIG_KEY));
     }
     return inputTopics.stream().collect(Collectors.toList());
@@ -82,7 +83,7 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
     List<String> viewGenNames = getViewGenName(properties);
     Set<String> inputTopics = new HashSet<>();
     for (String viewGen : viewGenNames) {
-      Config viewGenConfig = (Config) properties.get(viewGen);
+      Config viewGenConfig = viewGenConfigs.get(viewGen);
       inputTopics.add(viewGenConfig.getString(OUTPUT_TOPIC_CONFIG_KEY));
     }
     return inputTopics.stream().collect(Collectors.toList());
