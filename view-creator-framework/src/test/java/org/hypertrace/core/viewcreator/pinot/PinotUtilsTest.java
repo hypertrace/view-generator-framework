@@ -2,9 +2,10 @@ package org.hypertrace.core.viewcreator.pinot;
 
 import com.typesafe.config.ConfigFactory;
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.apache.pinot.common.config.TableConfig;
-import org.apache.pinot.common.utils.CommonConstants.Helix.TableType;
+import org.apache.pinot.spi.config.table.TableConfig;
+import org.apache.pinot.spi.config.table.TableType;
 import org.apache.pinot.spi.data.FieldSpec.DataType;
 import org.apache.pinot.spi.data.Schema;
 import org.hypertrace.core.viewcreator.ViewCreationSpec;
@@ -46,7 +47,7 @@ public class PinotUtilsTest {
     Assertions.assertEquals("time_taken_millis", pinotSchemaForView.getMetricFieldSpecs().get(0).getName());
     Assertions.assertEquals(DataType.LONG, pinotSchemaForView.getMetricFieldSpecs().get(0).getDataType());
 
-    Assertions.assertEquals("creation_time_millis", pinotSchemaForView.getTimeColumnName());
+    Assertions.assertEquals("creation_time_millis", pinotSchemaForView.getTimeFieldSpec().getName());
     Assertions.assertEquals(TimeUnit.MILLISECONDS,
         pinotSchemaForView.getTimeFieldSpec().getIncomingGranularitySpec().getTimeType());
     Assertions.assertEquals(DataType.LONG, pinotSchemaForView.getTimeFieldSpec().getDataType());
@@ -59,54 +60,57 @@ public class PinotUtilsTest {
         new File(this.getClass().getClassLoader()
             .getResource("sample-view-generation-spec.conf").getPath())));
 
-    final TableConfig tableConfig = PinotUtils.createPinotTable(viewCreationSpec);
+    final TableConfig tableConfig = PinotUtils.createPinotTableConfig(viewCreationSpec);
 
     LOGGER.info("Pinot Table Config for View: {}", tableConfig);
-    Assertions.assertEquals(tableConfig.getTableName(), "myView1_REALTIME");
-    Assertions.assertEquals(tableConfig.getTableType(), TableType.REALTIME);
-    Assertions.assertEquals(tableConfig.getIndexingConfig().getLoadMode(), "MMAP");
-    Assertions.assertEquals(tableConfig.getIndexingConfig().getStreamConfigs().get("streamType"),
-        "kafka");
-    Assertions.assertEquals(
-        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.consumer.type"),
-        "LowLevel");
-    Assertions.assertEquals(
-        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.topic.name"),
-        "test-view-events");
-    Assertions.assertEquals(
-        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.consumer.factory.class.name"),
-        "org.apache.pinot.plugin.stream.kafka20.KafkaConsumerFactory");
-    Assertions.assertEquals(
-        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.decoder.class.name"),
-        "org.apache.pinot.plugin.inputformat.avro.confluent.KafkaConfluentSchemaRegistryAvroMessageDecoder");
-    Assertions.assertEquals(tableConfig.getIndexingConfig().getStreamConfigs()
-        .get("stream.kafka.hlc.zk.connect.string"), "localhost:2181");
-    Assertions.assertEquals(
-        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.zk.broker.url"),
-        "localhost:2181");
-    Assertions.assertEquals(
-        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.broker.list"),
-        "localhost:9092");
-    Assertions.assertEquals(
-        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.decoder.prop.schema.registry.rest.url"),
-        "http://localhost:8081");
-    Assertions.assertEquals(tableConfig.getIndexingConfig().getStreamConfigs()
-        .get("realtime.segment.flush.threshold.time"), "3600000");
-    Assertions.assertEquals(tableConfig.getIndexingConfig().getStreamConfigs()
-        .get("realtime.segment.flush.threshold.size"), "500000");
-    Assertions.assertEquals(tableConfig.getIndexingConfig().getStreamConfigs()
-        .get("stream.kafka.consumer.prop.auto.offset.reset"), "largest");
+    Assertions.assertEquals("myView1_REALTIME", tableConfig.getTableName());
+    Assertions.assertEquals(TableType.REALTIME, tableConfig.getTableType());
+    Assertions.assertEquals("MMAP", tableConfig.getIndexingConfig().getLoadMode());
+    Assertions.assertEquals("kafka", tableConfig.getIndexingConfig().getStreamConfigs().get("streamType"));
+    Assertions.assertEquals("LowLevel",
+        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.consumer.type"));
+    Assertions.assertEquals("test-view-events",
+        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.topic.name"));
+    Assertions.assertEquals("org.apache.pinot.plugin.stream.kafka20.KafkaConsumerFactory",
+        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.consumer.factory.class.name"));
+    Assertions.assertEquals("org.apache.pinot.plugin.inputformat.avro.confluent.KafkaConfluentSchemaRegistryAvroMessageDecoder",
+        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.decoder.class.name"));
+    Assertions.assertEquals("localhost:2181",
+        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.hlc.zk.connect.string"));
+    Assertions.assertEquals("localhost:2181",
+        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.zk.broker.url"));
+    Assertions.assertEquals("localhost:9092",
+        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.broker.list"));
+    Assertions.assertEquals("http://localhost:8081",
+        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.decoder.prop.schema.registry.rest.url"));
+    Assertions.assertEquals("3600000",
+        tableConfig.getIndexingConfig().getStreamConfigs().get("realtime.segment.flush.threshold.time"));
+    Assertions.assertEquals("500000",
+        tableConfig.getIndexingConfig().getStreamConfigs().get("realtime.segment.flush.threshold.size"));
+    Assertions.assertEquals("largest",
+        tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.consumer.prop.auto.offset.reset"));
 
-    Assertions.assertEquals(tableConfig.getTenantConfig().getBroker(), "defaultBroker");
-    Assertions.assertEquals(tableConfig.getTenantConfig().getServer(), "defaultServer");
-    Assertions.assertEquals(tableConfig.getValidationConfig().getReplicationNumber(), 1);
-    Assertions.assertEquals(tableConfig.getValidationConfig().getRetentionTimeValue(), "3");
-    Assertions.assertEquals(tableConfig.getValidationConfig().getRetentionTimeUnit(), "DAYS");
+    // Verify tenant configs
+    Assertions.assertEquals("defaultBroker", tableConfig.getTenantConfig().getBroker());
+    Assertions.assertEquals("defaultServer", tableConfig.getTenantConfig().getServer());
+
+    // Verify indexing related configs
+    Assertions.assertEquals(List.of("creation_time_millis"),
+        tableConfig.getIndexingConfig().getRangeIndexColumns());
+    Assertions.assertEquals(List.of("properties__VALUES"),
+        tableConfig.getIndexingConfig().getNoDictionaryColumns());
+    Assertions.assertEquals(List.of("id_sha"), tableConfig.getIndexingConfig().getBloomFilterColumns());
+
+    // Verify segment configs
+    Assertions.assertEquals(1, tableConfig.getValidationConfig().getReplicationNumber());
+    Assertions.assertEquals("3", tableConfig.getValidationConfig().getRetentionTimeValue());
+    Assertions.assertEquals("DAYS", tableConfig.getValidationConfig().getRetentionTimeUnit());
+    Assertions.assertEquals("BalanceNumSegmentAssignmentStrategy",
+        tableConfig.getValidationConfig().getSegmentAssignmentStrategy());
+
     // TODO: This is deprecated
-    Assertions.assertEquals(tableConfig.getValidationConfig().getTimeColumnName(), "creation_time_millis");
+    Assertions.assertEquals("creation_time_millis", tableConfig.getValidationConfig().getTimeColumnName());
     // TODO: This is deprecated
-    Assertions.assertEquals(tableConfig.getValidationConfig().getTimeType(), TimeUnit.MILLISECONDS);
-    Assertions.assertEquals(tableConfig.getValidationConfig().getSegmentAssignmentStrategy(),
-        "BalanceNumSegmentAssignmentStrategy");
+    Assertions.assertEquals(TimeUnit.MILLISECONDS, tableConfig.getValidationConfig().getTimeType());
   }
 }
