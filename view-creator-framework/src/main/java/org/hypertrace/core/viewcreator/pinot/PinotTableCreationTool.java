@@ -1,6 +1,6 @@
 package org.hypertrace.core.viewcreator.pinot;
 
-import org.apache.pinot.common.config.TableConfig;
+import org.apache.pinot.spi.config.table.TableConfig;
 import org.apache.pinot.spi.data.Schema;
 import org.hypertrace.core.viewcreator.TableCreationTool;
 import org.hypertrace.core.viewcreator.ViewCreationSpec;
@@ -25,7 +25,7 @@ public class PinotTableCreationTool implements TableCreationTool {
     if (!uploadPinotSchema) {
       throw new RuntimeException("Failed to upload Pinot schema.");
     }
-    final TableConfig tableConfig = PinotUtils.createPinotTable(viewCreationSpec);
+    final TableConfig tableConfig = PinotUtils.createPinotTableConfig(viewCreationSpec);
     final boolean createPinotTable =
         PinotUtils.sendPinotTableCreationRequest(viewCreationSpec, tableConfig);
     if (!createPinotTable) {

@@ -59,23 +59,34 @@ public class ViewCreationSpec {
     private String controllerHost;
     private String controllerPort;
 
-    private TimeUnit timeUnit;
-    private String timeColumn;
-    private List<String> dimensionColumns;
-    private List<String> metricColumns;
-    private List<String> invertedIndexColumns;
-    private Map<String, Object> columnsMaxLength;
-
     // Table configs;
     private String tableName;
-    private Map<String, Object> streamConfigs;
     private String loadMode;
+
+    private List<String> dimensionColumns;
+    private List<String> metricColumns;
+
+    // Table index configs
+    private List<String> invertedIndexColumns;
+    private List<String> noDictionaryColumns;
+    private List<String> bloomFilterColumns;
+    private List<String> rangeIndexColumns;
+    private Map<String, Object> columnsMaxLength;
+
+    // Stream configs
+    private Map<String, Object> streamConfigs;
+
+    // Segments config
     private int numReplicas;
+    private TimeUnit timeUnit;
+    private String timeColumn;
     private String retentionTimeValue;
     private String retentionTimeUnit;
+    private String segmentAssignmentStrategy;
+
+    // Tenants config
     private String brokerTenant;
     private String serverTenant;
-    private String segmentAssignmentStrategy;
 
     public PinotTableSpec() {
 
@@ -217,6 +228,29 @@ public class ViewCreationSpec {
       this.segmentAssignmentStrategy = segmentAssignmentStrategy;
     }
 
+    public List<String> getNoDictionaryColumns() {
+      return noDictionaryColumns;
+    }
+
+    public void setNoDictionaryColumns(List<String> noDictionaryColumns) {
+      this.noDictionaryColumns = noDictionaryColumns;
+    }
+
+    public List<String> getBloomFilterColumns() {
+      return bloomFilterColumns;
+    }
+
+    public void setBloomFilterColumns(List<String> bloomFilterColumns) {
+      this.bloomFilterColumns = bloomFilterColumns;
+    }
+
+    public List<String> getRangeIndexColumns() {
+      return rangeIndexColumns;
+    }
+
+    public void setRangeIndexColumns(List<String> rangeIndexColumns) {
+      this.rangeIndexColumns = rangeIndexColumns;
+    }
   }
 
   public static class KafkaSpec {
