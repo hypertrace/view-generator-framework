@@ -25,7 +25,7 @@ tasks.test {
 
 dependencies {
   implementation("org.hypertrace.core.eventstore:event-store:0.1.1")
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.9")
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.13")
   constraints {
     implementation("com.google.guava:guava:29.0-jre") {
       because("Deserialization of Untrusted Data [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-32236] in com.google.guava:guava@20.0\n" +
@@ -91,6 +91,9 @@ dependencies {
     implementation("org.glassfish.jersey.core:jersey-server:2.31") {
       because("XML Entity Expansion [High Severity][https://snyk.io/vuln/SNYK-JAVA-ORGGLASSFISHJERSEYMEDIA-595972] in org.glassfish.jersey.media:jersey-media-jaxb@2.28\n" +
               "    introduced by org.apache.pinot:pinot-tools@0.3.0 > org.apache.pinot:pinot-common@0.3.0 > org.glassfish.jersey.core:jersey-server@2.28 > org.glassfish.jersey.media:jersey-media-jaxb@2.28 and 1 other path(s)\n")
+    }
+    implementation("io.grpc:grpc-netty-shaded@1.31.0") {
+      because("Information Exposure [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-IOGRPC-571957] in io.grpc:grpc-core@1.30.0")
     }
   }
 
