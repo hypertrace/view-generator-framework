@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 public class ViewGeneratorLauncher extends KafkaStreamsApp {
 
   private static final Logger logger = LoggerFactory.getLogger(ViewGeneratorLauncher.class);
-  private static final String DEFAULT_VIEW_GEN_JOB_CONFIG_KEY = "view-gen";
+  private static final String DEFAULT_VIEW_GEN_JOB_CONFIG_KEY = "view-gen-job-config-key";
   private String viewGenName;
 
   public ViewGeneratorLauncher(ConfigClient configClient) {
@@ -70,13 +70,6 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
             Produced.with(Serdes.String(), null));
 
     return streamsBuilder;
-  }
-
-  @Override
-  public Map<String, Object> getStreamsConfig(Config config) {
-    Map<String, Object> properties = new HashMap<>(
-        ConfigUtils.getFlatMapConfig(config, KAFKA_STREAMS_CONFIG_KEY));
-    return properties;
   }
 
   @Override
