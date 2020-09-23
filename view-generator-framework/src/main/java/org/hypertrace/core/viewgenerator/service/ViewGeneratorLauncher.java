@@ -83,18 +83,6 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
     return logger;
   }
 
-  @Override
-  public List<String> getInputTopics(Map<String, Object> properties) {
-    Config jobConfig = getJobConfig(properties);
-    return Arrays.asList(jobConfig.getString(INPUT_TOPIC_CONFIG_KEY));
-  }
-
-  @Override
-  public List<String> getOutputTopics(Map<String, Object> properties) {
-    Config jobConfig = getJobConfig(properties);
-    return Arrays.asList(jobConfig.getString(OUTPUT_TOPIC_CONFIG_KEY));
-  }
-
   private Config getJobConfig(Map<String, Object> properties) {
     return (Config) properties.get(getJobConfigKey());
   }
