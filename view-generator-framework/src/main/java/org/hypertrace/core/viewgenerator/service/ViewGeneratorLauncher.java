@@ -1,58 +1,69 @@
 package org.hypertrace.core.viewgenerator.service;
 
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.hypertrace.core.serviceframework.PlatformService;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.INPUT_TOPIC_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.OUTPUT_TOPIC_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.VIEW_GENERATOR_CLASS_CONFIG_KEY;
+
+import com.typesafe.config.Config;
+import java.util.Map;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Produced;
+import org.hypertrace.core.kafkastreams.framework.KafkaStreamsApp;
 import org.hypertrace.core.serviceframework.config.ConfigClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-/**
- * ViewGeneratorLauncher reads enriched structured traces and converts them to Pinot records using specified Avro
- * schema specified in the target view generator class, which is specified in the config.
- */
-public class ViewGeneratorLauncher extends PlatformService {
+public class ViewGeneratorLauncher extends KafkaStreamsApp {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(ViewGeneratorLauncher.class);
-
-  private ViewGenerationJob job;
-  private StreamExecutionEnvironment environment;
+  private static final String DEFAULT_VIEW_GEN_JOB_CONFIG_KEY = "view-gen-job-config-key";
+  private String viewGenName;
 
   public ViewGeneratorLauncher(ConfigClient configClient) {
     super(configClient);
   }
 
+  public String getViewGenName() {
+    return viewGenName;
+  }
+
+  public void setViewGenName(String viewGenName) {
+    this.viewGenName = viewGenName;
+  }
+
   @Override
-  protected void doInit() {
+  public StreamsBuilder buildTopology(Map<String, Object> properties, StreamsBuilder streamsBuilder,
+      Map<String, KStream<?, ?>> inputStreams) {
+
+    Config jobConfig = getJobConfig(properties);
+    String viewGeneratorClassName = jobConfig.getString(VIEW_GENERATOR_CLASS_CONFIG_KEY);
+
+    InputToViewMapper viewMapper;
     try {
-      environment = FlinkEnvironmentFactory.createExecutionEnv(getAppConfig());
-      job = new ViewGenerationJob(environment, getAppConfig());
-      job.init();
+      viewMapper = new InputToViewMapper(viewGeneratorClassName);
     } catch (Exception e) {
-      LOGGER.error("Failed to initialize ViewGenerationJob.", e);
       throw new RuntimeException(e);
     }
-  }
 
-  @Override
-  protected void doStart() {
-    try {
-      environment.execute(getServiceName());
-    } catch (Exception e) {
-      LOGGER.error("Got exception during ViewGenerationJob.", e);
-      // Since the job couldn't recover from the error state like this.
-      // It's better to kill the entire process and let the guardian process to restart the job,
-      // e.g. systemd or kubernetes.
-      System.exit(1);
+    String inputTopic = jobConfig.getString(INPUT_TOPIC_CONFIG_KEY);
+    String outputTopic = jobConfig.getString(OUTPUT_TOPIC_CONFIG_KEY);
+
+    KStream<?, ?> inputStream = inputStreams.get(inputTopic);
+    if (inputStream == null) {
+      inputStream = streamsBuilder.stream(inputTopic, Consumed.with(Serdes.String(), null));
+      inputStreams.put(inputTopic, inputStream);
     }
+    inputStream.flatMapValues(viewMapper).to(outputTopic, Produced.with(Serdes.String(), null));
+    return streamsBuilder;
   }
 
   @Override
-  protected void doStop() {
-    job.stop();
+  public String getJobConfigKey() {
+    String jobConfigKey = getViewGenName();
+    return jobConfigKey != null ? jobConfigKey : DEFAULT_VIEW_GEN_JOB_CONFIG_KEY;
   }
 
-  @Override
-  public boolean healthCheck() {
-    return true;
+  private Config getJobConfig(Map<String, Object> properties) {
+    return (Config) properties.get(getJobConfigKey());
   }
 }

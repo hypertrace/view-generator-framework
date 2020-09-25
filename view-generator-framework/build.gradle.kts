@@ -35,14 +35,7 @@ dependencies {
 
   implementation("com.typesafe:config:1.3.2")
 
-  // Flink
-  implementation("org.apache.flink:flink-streaming-java_2.11:1.7.0")
-  implementation("org.apache.flink:flink-connector-kafka_2.11:1.7.0")
-  implementation("de.javakaffee:kryo-serializers:0.45")
-  runtimeOnly("org.apache.flink:flink-avro:1.9.2")
-
-  // Needed for flink metric exporter. Used for Hypertrace and debugging.
-  runtimeOnly("org.apache.flink:flink-metrics-slf4j:1.10.1")
+  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.1.9")
 
   testImplementation("org.junit.jupiter:junit-jupiter:5.6.2")
   testImplementation("org.mockito:mockito-core:3.3.3")

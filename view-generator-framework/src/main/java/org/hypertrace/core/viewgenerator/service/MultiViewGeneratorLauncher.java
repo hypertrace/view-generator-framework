@@ -1,87 +1,104 @@
 package org.hypertrace.core.viewgenerator.service;
 
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.INPUT_TOPIC_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.OUTPUT_TOPIC_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.VIEW_GENERATORS_CONFIG;
+
 import com.typesafe.config.Config;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.hypertrace.core.serviceframework.PlatformService;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.KStream;
+import org.hypertrace.core.kafkastreams.framework.KafkaStreamsApp;
 import org.hypertrace.core.serviceframework.config.ConfigClient;
 import org.hypertrace.core.serviceframework.config.ConfigClientFactory;
 import org.hypertrace.core.serviceframework.config.ConfigUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-/**
- * MultiViewGeneratorLauncher bundles multiple view generators into single service.
- * Can be used to reduce the number of services/pods/resources.
- * Used in hypertrace standalone mode deployment.
- */
-public class MultiViewGeneratorLauncher extends PlatformService {
+public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(MultiViewGeneratorLauncher.class);
+  private static final String MULTI_VIEW_GEN_JOB_CONFIG = "multi-view-gen-job-config";
 
-  private static final String VIEW_GENERATORS_CONFIG = "view.generators";
-
-  private List<ViewGenerationJob> viewGenerationJobs;
-  private StreamExecutionEnvironment environment;
+  private Map<String, Config> viewGenConfigs;
 
   public MultiViewGeneratorLauncher(ConfigClient configClient) {
     super(configClient);
+    viewGenConfigs = new HashMap<>();
   }
 
   @Override
-  protected void doInit() {
-    try {
-      viewGenerationJobs = new ArrayList<>();
+  public StreamsBuilder buildTopology(Map<String, Object> properties, StreamsBuilder streamsBuilder,
+      Map<String, KStream<?, ?>> map) {
 
-      List<String> viewGenNames = getAppConfig().getStringList(VIEW_GENERATORS_CONFIG);
-      environment = FlinkEnvironmentFactory.createExecutionEnv(getAppConfig());
-      viewGenNames.stream().forEach(viewGen -> {
-        viewGenerationJobs.add(initViewGenerator(environment, viewGen));
-      });
-    } catch (Exception e) {
-      LOGGER.error("Failed to initialize ViewGenerationJob.", e);
-      throw new RuntimeException(e);
+    List<String> viewGenNames = getViewGenName(properties);
+
+    for (String viewGen : viewGenNames) {
+      ConfigClient client = ConfigClientFactory.getClient();
+      Config viewGenConfig = getSubJobConfig(client, viewGen);
+      viewGenConfigs.put(viewGen, viewGenConfig);
+
+      // build using its own job config and properties
+      ViewGeneratorLauncher viewGenJob = createViewGenJob(client, viewGen);
+      Map<String, Object> viewGenProperties = viewGenJob.getStreamsConfig(viewGenConfig);
+      viewGenProperties.put(viewGenJob.getJobConfigKey(), viewGenConfig);
+      streamsBuilder = viewGenJob.buildTopology(viewGenProperties, streamsBuilder, map);
+
+      // retains the job specific config in main properties which is passed as context if need be.
+      properties.put(viewGenJob.getJobConfigKey(), viewGenConfig);
     }
-  }
 
-  private ViewGenerationJob initViewGenerator(
-      StreamExecutionEnvironment environment,
-      String viewGen) {
-    ConfigClient configClient = ConfigClientFactory.getClient();
-    String cluster = ConfigUtils.getEnvironmentProperty("cluster.name");
-    String pod = ConfigUtils.getEnvironmentProperty("pod.name");
-    String container = ConfigUtils.getEnvironmentProperty("container.name");
-
-    Config viewGenConfig = configClient.getConfig(viewGen, cluster, pod, container);
-
-    ViewGenerationJob job = new ViewGenerationJob(environment, viewGenConfig);
-    job.init();
-
-    return job;
+    return streamsBuilder;
   }
 
   @Override
-  protected void doStart() {
-    try {
-      environment.execute(getServiceName());
-    } catch (Exception e) {
-      LOGGER.error("Error occurred in view generation", e);
-      // Since the job couldn't recover from the error state like this.
-      // It's better to kill the entire process and let the guardian process to restart the job,
-      // e.g. systemd or kubernetes.
-      System.exit(1);
+  public String getJobConfigKey() {
+    return MULTI_VIEW_GEN_JOB_CONFIG;
+  }
+
+  @Override
+  public List<String> getInputTopics(Map<String, Object> properties) {
+    List<String> viewGenNames = getViewGenName(properties);
+    Set<String> inputTopics = new HashSet<>();
+    for (String viewGen : viewGenNames) {
+      Config viewGenConfig = viewGenConfigs.get(viewGen);
+      inputTopics.add(viewGenConfig.getString(INPUT_TOPIC_CONFIG_KEY));
     }
+    return inputTopics.stream().collect(Collectors.toList());
   }
 
   @Override
-  protected void doStop() {
-    viewGenerationJobs.stream().forEach(job -> {job.stop();});
+  public List<String> getOutputTopics(Map<String, Object> properties) {
+    List<String> viewGenNames = getViewGenName(properties);
+    Set<String> outputTopics = new HashSet<>();
+    for (String viewGen : viewGenNames) {
+      Config viewGenConfig = viewGenConfigs.get(viewGen);
+      outputTopics.add(viewGenConfig.getString(OUTPUT_TOPIC_CONFIG_KEY));
+    }
+    return outputTopics.stream().collect(Collectors.toList());
   }
 
-  @Override
-  public boolean healthCheck() {
-    return true;
+  private Config getJobConfig(Map<String, Object> properties) {
+    return (Config) properties.get(getJobConfigKey());
   }
 
+  private List<String> getViewGenName(Map<String, Object> properties) {
+    return getJobConfig(properties).getStringList(VIEW_GENERATORS_CONFIG);
+  }
+
+  private ViewGeneratorLauncher createViewGenJob(ConfigClient client, String viewGen) {
+    ViewGeneratorLauncher viewGeneratorLauncher = new ViewGeneratorLauncher(client);
+    viewGeneratorLauncher.setViewGenName(viewGen);
+    return viewGeneratorLauncher;
+  }
+
+  private Config getSubJobConfig(ConfigClient client, String jobName) {
+    return client.getConfig(jobName,
+        ConfigUtils.getEnvironmentProperty("cluster.name"),
+        ConfigUtils.getEnvironmentProperty("pod.name"),
+        ConfigUtils.getEnvironmentProperty("container.name")
+    );
+  }
 }
