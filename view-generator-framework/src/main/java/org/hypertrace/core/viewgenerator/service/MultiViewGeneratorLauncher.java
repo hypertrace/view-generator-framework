@@ -58,11 +58,6 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
   }
 
   @Override
-  public Logger getLogger() {
-    return logger;
-  }
-
-  @Override
   public String getJobConfigKey() {
     return MULTI_VIEW_GEN_JOB_CONFIG;
   }
@@ -81,12 +76,12 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
   @Override
   public List<String> getOutputTopics(Map<String, Object> properties) {
     List<String> viewGenNames = getViewGenName(properties);
-    Set<String> inputTopics = new HashSet<>();
+    Set<String> outputTopics = new HashSet<>();
     for (String viewGen : viewGenNames) {
       Config viewGenConfig = viewGenConfigs.get(viewGen);
-      inputTopics.add(viewGenConfig.getString(OUTPUT_TOPIC_CONFIG_KEY));
+      outputTopics.add(viewGenConfig.getString(OUTPUT_TOPIC_CONFIG_KEY));
     }
-    return inputTopics.stream().collect(Collectors.toList());
+    return outputTopics.stream().collect(Collectors.toList());
   }
 
   private Config getJobConfig(Map<String, Object> properties) {

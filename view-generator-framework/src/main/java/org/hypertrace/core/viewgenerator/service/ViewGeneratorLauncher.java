@@ -78,11 +78,6 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
     return jobConfigKey != null ? jobConfigKey : DEFAULT_VIEW_GEN_JOB_CONFIG_KEY;
   }
 
-  @Override
-  public Logger getLogger() {
-    return logger;
-  }
-
   private Config getJobConfig(Map<String, Object> properties) {
     return (Config) properties.get(getJobConfigKey());
   }
