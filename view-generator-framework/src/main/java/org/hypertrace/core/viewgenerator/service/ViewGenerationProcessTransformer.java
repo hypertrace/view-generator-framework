@@ -23,7 +23,7 @@ public class ViewGenerationProcessTransformer<IN extends SpecificRecord, OUT ext
   @Override
   public void init(ProcessorContext context) {
     this.context = context;
-    String outputTopicName = (String)context.appConfigs().get(OUTPUT_TOPIC_CONFIG_KEY);
+    String outputTopicName = (String) context.appConfigs().get(OUTPUT_TOPIC_CONFIG_KEY);
     outputTopic = To.child(outputTopicName);
     this.viewgenClassName = (String) context.appConfigs().get(VIEW_GENERATOR_CLASS_CONFIG_KEY);
     try {
@@ -37,8 +37,8 @@ public class ViewGenerationProcessTransformer<IN extends SpecificRecord, OUT ext
   @Override
   public OUT transform(String key, IN value) {
     List<OUT> output = viewGenerator.process(value);
-    if(output != null){
-      for(OUT out : output){
+    if (output != null) {
+      for (OUT out : output) {
         context.forward(null, out, outputTopic);
       }
     }

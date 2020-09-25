@@ -1,7 +1,6 @@
 package org.hypertrace.core.viewgenerator.service;
 
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.INPUT_TOPIC_CONFIG_KEY;
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.KAFKA_STREAMS_CONFIG_KEY;
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.OUTPUT_TOPIC_CONFIG_KEY;
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.VIEW_GENERATORS_CONFIG;
 
@@ -18,12 +17,9 @@ import org.hypertrace.core.kafkastreams.framework.KafkaStreamsApp;
 import org.hypertrace.core.serviceframework.config.ConfigClient;
 import org.hypertrace.core.serviceframework.config.ConfigClientFactory;
 import org.hypertrace.core.serviceframework.config.ConfigUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
 
-  private static final Logger logger = LoggerFactory.getLogger(MultiViewGeneratorLauncher.class);
   private static final String MULTI_VIEW_GEN_JOB_CONFIG = "multi-view-gen-job-config";
 
   private Map<String, Config> viewGenConfigs;
