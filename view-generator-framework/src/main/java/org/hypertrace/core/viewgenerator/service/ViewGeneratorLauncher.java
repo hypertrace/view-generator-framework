@@ -6,6 +6,7 @@ import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.V
 
 import com.typesafe.config.Config;
 import java.util.Map;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
@@ -53,7 +54,22 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
       inputStream = streamsBuilder.stream(inputTopic, Consumed.with(Serdes.String(), null));
       inputStreams.put(inputTopic, inputStream);
     }
-    inputStream.flatMapValues(viewMapper).to(outputTopic, Produced.with(Serdes.String(), null));
+
+    // This enviorn property helps in overriding producer value serde.
+    // In local mode of deployment of single ingestion pipeline, this helps
+    // in using GenericAvroSerde which is independent of schema registry.
+    Serde producerValueSerde = null;
+    String envProducerValueSerdeClassName = System.getProperty("PRODUCER_VALUE_SERDE");
+    if (envProducerValueSerdeClassName != null) {
+      try {
+        Class clazz = Class.forName(envProducerValueSerdeClassName);
+        producerValueSerde = Serdes.serdeFrom(clazz);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+    inputStream.flatMapValues(viewMapper)
+        .to(outputTopic, Produced.with(Serdes.String(), producerValueSerde));
     return streamsBuilder;
   }
 
