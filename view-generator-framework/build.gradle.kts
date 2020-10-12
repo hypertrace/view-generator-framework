@@ -24,7 +24,7 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.13")
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.14")
   implementation("org.hypertrace.core.flinkutils:flink-utils:0.1.6")
 
   implementation("org.apache.avro:avro:1.9.2")
@@ -35,8 +35,8 @@ dependencies {
 
   implementation("com.typesafe:config:1.3.2")
 
-  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.1.11")
-  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-serdes:0.1.11")
+  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.1.13")
+  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-serdes:0.1.13")
 
   testImplementation("org.junit.jupiter:junit-jupiter:5.6.2")
   testImplementation("org.mockito:mockito-core:3.3.3")
