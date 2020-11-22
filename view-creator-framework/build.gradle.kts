@@ -22,7 +22,7 @@ dependencies {
   implementation("org.hypertrace.core.eventstore:event-store:0.1.1")
   implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.16")
   constraints {
-    implementation("io.netty:netty-all:4.1.50.Final") {
+    implementation("io.netty:netty-all:4.1.54.Final") {
       because("HTTP Request Smuggling [High Severity][https://snyk.io/vuln/SNYK-JAVA-IONETTY-559515] in io.netty:netty-all@4.1.28.Final")
     }
     implementation("commons-collections:commons-collections:3.2.2") {
@@ -46,11 +46,14 @@ dependencies {
     implementation("org.glassfish.jersey.core:jersey-server:2.31") {
       because("XML Entity Expansion [High Severity][https://snyk.io/vuln/SNYK-JAVA-ORGGLASSFISHJERSEYMEDIA-595972] in org.glassfish.jersey.media:jersey-media-jaxb@2.28")
     }
-    implementation("io.grpc:grpc-core:1.31.0") {
+    implementation("io.grpc:grpc-core:1.33.1") {
       because("Information Exposure [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-IOGRPC-571957] in io.grpc:grpc-core@1.30.0")
     }
     implementation("com.google.guava:guava:30.0-android") {
       because("Information Disclosure (new) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415] in com.google.guava:guava@29.0-android")
+    }
+    implementation("org.apache.calcite:calcite-core:1.26.0") {
+      because("Man-in-the-Middle (MitM) [High Severity][https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECALCITE-1038296] in org.apache.calcite:calcite-core@1.19.0")
     }
   }
 
