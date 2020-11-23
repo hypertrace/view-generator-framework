@@ -52,7 +52,8 @@ dependencies {
     implementation("com.google.guava:guava:30.0-android") {
       because("Information Disclosure (new) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415] in com.google.guava:guava@29.0-android")
     }
-    implementation("org.apache.calcite:calcite-core:1.26.0") {
+    // We put a constraint on calcite-babel instead of calcite-core so that all of calcite is upgraded.
+    implementation("org.apache.calcite:calcite-babel:1.26.0") {
       because("Man-in-the-Middle (MitM) [High Severity][https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECALCITE-1038296] in org.apache.calcite:calcite-core@1.19.0")
     }
   }
