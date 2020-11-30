@@ -20,7 +20,7 @@ tasks.test {
 
 dependencies {
   implementation("org.hypertrace.core.eventstore:event-store:0.1.1")
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.16")
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.18")
   constraints {
     implementation("io.netty:netty-all:4.1.54.Final") {
       because("HTTP Request Smuggling [High Severity][https://snyk.io/vuln/SNYK-JAVA-IONETTY-559515] in io.netty:netty-all@4.1.28.Final")
@@ -71,12 +71,12 @@ dependencies {
     exclude("org.apache.pinot", "pinot-broker")
   }
 
-  implementation("org.slf4j:slf4j-api:1.7.25")
-  implementation("com.typesafe:config:1.3.2")
-  runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.13.3")
+  implementation("org.slf4j:slf4j-api:1.7.30")
+  implementation("com.typesafe:config:1.4.1")
+  runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.14.0")
 
-  testImplementation("org.junit.jupiter:junit-jupiter:5.6.2")
-  testImplementation("org.mockito:mockito-core:3.3.3")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
+  testImplementation("org.mockito:mockito-core:3.6.28")
 }
 
 group = "org.hypertrace.core.viewcreator"
