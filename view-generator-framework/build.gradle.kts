@@ -25,7 +25,6 @@ tasks.test {
 
 dependencies {
   implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.18")
-  implementation("org.hypertrace.core.flinkutils:flink-utils:0.1.6")
 
   implementation("org.apache.avro:avro:1.9.2")
 

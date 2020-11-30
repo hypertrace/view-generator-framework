@@ -19,7 +19,6 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.eventstore:event-store:0.1.1")
   implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.18")
   constraints {
     implementation("io.netty:netty-all:4.1.54.Final") {
