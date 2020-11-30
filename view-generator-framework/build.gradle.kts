@@ -30,10 +30,6 @@ dependencies {
 
   implementation("com.typesafe:config:1.4.1")
 
-  implementation("com.google.guava:guava:30.0-jre") {
-    because("Information Disclosure (new) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415] in com.google.guava:guava@29.0-android")
-  }
-
   implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.1.13")
   implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-serdes:0.1.13")
 
