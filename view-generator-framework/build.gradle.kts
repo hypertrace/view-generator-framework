@@ -6,15 +6,11 @@ plugins {
   id("org.hypertrace.jacoco-report-plugin")
 }
 
-repositories {
-  // Need this to fetch confluent's kafka-clients dependency
-  maven("http://packages.confluent.io/maven")
-}
 
 sourceSets {
   test {
     java {
-      srcDirs("src/test/java", "build/generated-test-avro-java")
+      srcDir( "build/generated-test-avro-java")
     }
   }
 }
@@ -33,6 +29,10 @@ dependencies {
   runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.14.0")
 
   implementation("com.typesafe:config:1.4.1")
+
+  implementation("com.google.guava:guava:30.0-jre") {
+    because("Information Disclosure (new) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415] in com.google.guava:guava@29.0-android")
+  }
 
   implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.1.13")
   implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-serdes:0.1.13")
