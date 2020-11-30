@@ -36,4 +36,10 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
   testImplementation("org.mockito:mockito-core:3.6.28")
   testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.0")
+
+  constraints {
+    implementation("com.google.guava:guava:30.0-jre") {
+      because("Information Disclosure (new) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415] in com.google.guava:guava@29.0-android")
+    }
+  }
 }
