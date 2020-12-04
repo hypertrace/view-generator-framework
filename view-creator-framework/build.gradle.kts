@@ -55,6 +55,9 @@ dependencies {
     implementation("org.apache.calcite:calcite-babel:1.26.0") {
       because("Man-in-the-Middle (MitM) [High Severity][https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECALCITE-1038296] in org.apache.calcite:calcite-core@1.19.0")
     }
+    implementation("org.apache.httpcomponents:httpclient:4.5.13") {
+      because("Improper Input Validation [High Severity][https://snyk.io/vuln/SNYK-JAVA-ORGAPACHEHTTPCOMPONENTS-1048058] in org.apache.httpcomponents:httpclient@4.5.9")
+    }
   }
 
   implementation("org.apache.avro:avro:1.9.2")
@@ -68,6 +71,8 @@ dependencies {
     exclude("org.apache.pinot", "pinot-controller")
     exclude("org.apache.pinot", "pinot-server")
     exclude("org.apache.pinot", "pinot-broker")
+    exclude("org.apache.hadoop", "hadoop-common")
+    exclude("org.apache.hadoop", "hadoop-hdfs")
   }
 
   implementation("org.slf4j:slf4j-api:1.7.30")
