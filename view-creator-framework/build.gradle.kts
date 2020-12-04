@@ -59,7 +59,7 @@ dependencies {
 
   implementation("org.apache.avro:avro:1.9.2")
   implementation("org.apache.kafka:kafka-clients:5.5.0-ccs")
-  implementation("org.apache.pinot:pinot-tools:0.5.0") {
+  implementation("org.apache.pinot:pinot-tools:0.6.0") {
     // We use newer version of servlet-api brought by jetty so we exclude the older
     // version here.
     exclude("javax.servlet", "javax.servlet-api")
