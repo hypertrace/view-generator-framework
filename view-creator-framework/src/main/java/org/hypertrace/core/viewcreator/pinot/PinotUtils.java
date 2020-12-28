@@ -155,18 +155,15 @@ public class PinotUtils {
 
       for (FieldSpec convertedSpec : fieldSpecs) {
         if (convertedSpec != null) {
-          Object defaultVal;
+          Object defaultVal = field.defaultVal();
+          // Replace the avro generated defaults in certain cases
           if (field.schema().getType().equals(Type.MAP)) {
-            // we need to set it empty string instead of the default map because it's being split
-            // to 2 different string
+            // A map is split into two multivalued string cols, use an empty string default for each
+            // TODO - why not use null and let pinot decide?
             defaultVal = "";
-          } else {
-            defaultVal = field.defaultVal();
-          }
-          if (defaultVal == JsonProperties.NULL_VALUE) {
+          } else if (defaultVal == JsonProperties.NULL_VALUE) {
             defaultVal = null;
-          }
-          if (!AvroUtils.isSingleValueField(field)
+          } else if (!AvroUtils.isSingleValueField(field)
               && defaultVal instanceof Collection
               && ((Collection<?>) defaultVal).isEmpty()) {
             // Convert an empty collection into a null for a multivalued col
