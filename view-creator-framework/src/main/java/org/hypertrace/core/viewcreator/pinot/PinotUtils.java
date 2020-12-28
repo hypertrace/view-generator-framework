@@ -172,7 +172,7 @@ public class PinotUtils {
             // Convert an empty collection into a null for a multivalued col
             defaultVal = null;
           }
-            if (defaultVal != null) {
+          if (defaultVal != null) {
             convertedSpec.setDefaultNullValue(defaultVal);
           }
           Object maxLength = columnsMaxLength.get(convertedSpec.getName());
