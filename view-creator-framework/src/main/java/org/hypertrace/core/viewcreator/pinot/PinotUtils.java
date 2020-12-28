@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -165,7 +166,13 @@ public class PinotUtils {
           if (defaultVal == JsonProperties.NULL_VALUE) {
             defaultVal = null;
           }
-          if (defaultVal != null) {
+          if (!AvroUtils.isSingleValueField(field)
+              && defaultVal instanceof Collection
+              && ((Collection<?>) defaultVal).isEmpty()) {
+            // Convert an empty collection into a null for a multivalued col
+            defaultVal = null;
+          }
+            if (defaultVal != null) {
             convertedSpec.setDefaultNullValue(defaultVal);
           }
           Object maxLength = columnsMaxLength.get(convertedSpec.getName());
