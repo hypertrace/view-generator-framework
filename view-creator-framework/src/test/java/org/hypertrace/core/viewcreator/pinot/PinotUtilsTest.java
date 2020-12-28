@@ -1,5 +1,7 @@
 package org.hypertrace.core.viewcreator.pinot;
 
+import static org.apache.pinot.spi.data.FieldSpec.DEFAULT_DIMENSION_NULL_VALUE_OF_STRING;
+
 import com.typesafe.config.ConfigFactory;
 import java.io.File;
 import java.util.List;
@@ -42,7 +44,10 @@ public class PinotUtilsTest {
         pinotSchemaForView.getDimensionSpec("properties__VALUES").getDataType());
     Assertions.assertEquals("",
         pinotSchemaForView.getDimensionSpec("properties__KEYS").getDefaultNullValue());
-
+    Assertions.assertEquals(DEFAULT_DIMENSION_NULL_VALUE_OF_STRING, pinotSchemaForView.getDimensionSpec("name")
+                                            .getDefaultNullValue());
+    Assertions.assertEquals(DEFAULT_DIMENSION_NULL_VALUE_OF_STRING, pinotSchemaForView.getDimensionSpec("friends")
+                                            .getDefaultNullValue());
     // metric fields are not part of dimension columns
     Assertions.assertEquals("time_taken_millis", pinotSchemaForView.getMetricFieldSpecs().get(0).getName());
     Assertions.assertEquals(DataType.LONG, pinotSchemaForView.getMetricFieldSpecs().get(0).getDataType());
