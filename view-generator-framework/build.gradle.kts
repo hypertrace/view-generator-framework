@@ -20,7 +20,7 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.20")
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.21")
 
   implementation("org.apache.avro:avro:1.10.1")
 
