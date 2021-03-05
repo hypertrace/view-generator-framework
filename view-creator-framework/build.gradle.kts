@@ -58,6 +58,16 @@ dependencies {
     implementation("org.apache.httpcomponents:httpclient:4.5.13") {
       because("Improper Input Validation [High Severity][https://snyk.io/vuln/SNYK-JAVA-ORGAPACHEHTTPCOMPONENTS-1048058] in org.apache.httpcomponents:httpclient@4.5.9")
     }
+    implementation("io.netty:netty-handler:4.1.59.Final") {
+      because("Information Disclosure (new) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-IONETTY-1082235] in io.netty:netty-handler@4.1.48.Final")
+      because("Information Disclosure (new) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-IONETTY-1082234] in io.netty:netty-common@4.1.48.Final")
+      because("Information Disclosure (new) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-IONETTY-1082236] in io.netty:netty-transport@4.1.48.Final")
+    }
+    implementation("io.netty:netty-transport-native-epoll:4.1.59.Final") {
+      because("Information Disclosure (new) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-IONETTY-1082234] in io.netty:netty-common@4.1.48.Final")
+      because(" Information Disclosure (new) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-IONETTY-1082236] in io.netty:netty-transport@4.1.48.Final")
+      because(" Information Disclosure (new) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-IONETTY-1082238] in io.netty:netty-transport-native-epoll@4.1.48.Final")
+    }
   }
 
   implementation("org.apache.avro:avro:1.9.2")
