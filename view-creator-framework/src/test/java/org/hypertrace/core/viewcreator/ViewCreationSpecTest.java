@@ -29,7 +29,7 @@ public class ViewCreationSpecTest {
     Assertions.assertEquals(pinotTableSpec.getTimeColumn(), "creation_time_millis");
     Assertions.assertEquals(pinotTableSpec.getTimeUnit(), TimeUnit.MILLISECONDS);
     Assertions.assertEquals(pinotTableSpec.getDimensionColumns(), List.of("name", "creation_time_millis", "id_sha",
-        "friends", "properties__KEYS", "properties__VALUES"));
+        "friends", "properties__KEYS", "properties__VALUES", "intcol__KEYS", "intcol__VALUES"));
     Assertions.assertEquals(pinotTableSpec.getMetricColumns(),
         List.of("time_taken_millis"));
     Assertions.assertEquals(pinotTableSpec.getColumnsMaxLength(),
