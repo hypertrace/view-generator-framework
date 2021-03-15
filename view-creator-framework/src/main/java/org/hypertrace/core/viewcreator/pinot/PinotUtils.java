@@ -23,6 +23,7 @@ import org.apache.pinot.spi.config.table.TableConfig;
 import org.apache.pinot.spi.config.table.TableType;
 import org.apache.pinot.spi.data.DimensionFieldSpec;
 import org.apache.pinot.spi.data.FieldSpec;
+import org.apache.pinot.spi.data.FieldSpec.DataType;
 import org.apache.pinot.spi.data.MetricFieldSpec;
 import org.apache.pinot.spi.data.Schema;
 import org.apache.pinot.spi.data.TimeFieldSpec;
@@ -160,7 +161,11 @@ public class PinotUtils {
           if (field.schema().getType().equals(Type.MAP)) {
             // A map is split into two multivalued string cols, use an empty string default for each
             // TODO - why not use null and let pinot decide?
-            defaultVal = "";
+            if (convertedSpec.getDataType() == DataType.INT) {
+              defaultVal = 0;
+            } else {
+              defaultVal = "";
+            }
           } else if (defaultVal == JsonProperties.NULL_VALUE) {
             defaultVal = null;
           } else if (!AvroUtils.isSingleValueField(field)

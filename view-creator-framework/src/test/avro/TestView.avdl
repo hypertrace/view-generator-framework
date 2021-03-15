@@ -7,5 +7,6 @@ protocol TestViewProtocol {
     array<string> friends = [];
     map<string> properties = {};
     long time_taken_millis = 0;
+    map<int> intcol;
   }
 }
