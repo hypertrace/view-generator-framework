@@ -20,9 +20,9 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.21")
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.23")
 
-  implementation("org.apache.avro:avro:1.10.1")
+  implementation("org.apache.avro:avro:1.10.2")
 
   // Logging
   implementation("org.slf4j:slf4j-api:1.7.30")
@@ -30,20 +30,14 @@ dependencies {
 
   implementation("com.typesafe:config:1.4.1")
 
-  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.1.13")
-  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-serdes:0.1.13")
+  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.1.20")
+  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-serdes:0.1.20")
 
   testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
-  testImplementation("org.mockito:mockito-core:3.6.28")
+  testImplementation("org.mockito:mockito-core:3.8.0")
   testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.0")
 
   constraints {
-    implementation("com.google.guava:guava:30.0-jre") {
-      because("Information Disclosure (new) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415] in com.google.guava:guava@29.0-android")
-    }
-    implementation("org.glassfish.jersey.ext:jersey-bean-validation:2.31") {
-      because("XML Entity Expansion [High Severity][https://snyk.io/vuln/SNYK-JAVA-ORGGLASSFISHJERSEYMEDIA-595972] in org.glassfish.jersey.media:jersey-media-jaxb@2.30")
-    }
 
   }
 }
