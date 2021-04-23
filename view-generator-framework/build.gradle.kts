@@ -30,8 +30,8 @@ dependencies {
 
   implementation("com.typesafe:config:1.4.1")
 
-  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.1.20")
-  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-serdes:0.1.20")
+  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.1.21")
+  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-serdes:0.1.21")
 
   testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
   testImplementation("org.mockito:mockito-core:3.8.0")
