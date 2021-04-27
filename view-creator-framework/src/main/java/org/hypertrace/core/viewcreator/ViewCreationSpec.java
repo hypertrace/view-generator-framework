@@ -1,6 +1,8 @@
 package org.hypertrace.core.viewcreator;
 
 import com.typesafe.config.Config;
+import com.typesafe.config.Optional;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -65,6 +67,8 @@ public class ViewCreationSpec {
 
     private List<String> dimensionColumns;
     private List<String> metricColumns;
+    @Optional
+    private List<String> dateTimeColumns = Collections.EMPTY_LIST;
 
     // Table index configs
     private List<String> invertedIndexColumns;
@@ -138,6 +142,14 @@ public class ViewCreationSpec {
 
     public void setMetricColumns(List<String> metricColumns) {
       this.metricColumns = metricColumns;
+    }
+
+    public List<String> getDateTimeColumns() {
+      return this.dateTimeColumns;
+    }
+
+    public void setDateTimeColumns(List<String> dateTimeColumns) {
+      this.dateTimeColumns = dateTimeColumns;
     }
 
     public Map<String, Object> getColumnsMaxLength() {
