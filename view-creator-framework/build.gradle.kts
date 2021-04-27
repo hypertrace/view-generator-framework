@@ -49,6 +49,7 @@ dependencies {
     exclude("org.apache.pinot", "pinot-broker")
     exclude("org.apache.pinot", "pinot-parquet")
     exclude("org.apache.pinot", "pinot-server")
+    exclude("org.apache.pinot", "pinot-s3")
     exclude("org.apache.thrift", "libthrift")
     exclude("org.apache.zookeeper", "zookeeper")
     exclude("org.glassfish.jersey.containers", "jersey-container-grizzly2-http")
