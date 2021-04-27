@@ -21,12 +21,17 @@ import org.apache.commons.io.FileUtils;
 import org.apache.pinot.plugin.inputformat.avro.AvroUtils;
 import org.apache.pinot.spi.config.table.TableConfig;
 import org.apache.pinot.spi.config.table.TableType;
+import org.apache.pinot.spi.data.DateTimeFieldSpec;
+import org.apache.pinot.spi.data.DateTimeFieldSpec.TimeFormat;
+import org.apache.pinot.spi.data.DateTimeFormatSpec;
+import org.apache.pinot.spi.data.DateTimeFormatUnitSpec;
+import org.apache.pinot.spi.data.DateTimeFormatUnitSpec.DateTimeTransformUnit;
+import org.apache.pinot.spi.data.DateTimeGranularitySpec;
 import org.apache.pinot.spi.data.DimensionFieldSpec;
 import org.apache.pinot.spi.data.FieldSpec;
+import org.apache.pinot.spi.data.FieldSpec.DataType;
 import org.apache.pinot.spi.data.MetricFieldSpec;
 import org.apache.pinot.spi.data.Schema;
-import org.apache.pinot.spi.data.TimeFieldSpec;
-import org.apache.pinot.spi.data.TimeGranularitySpec;
 import org.apache.pinot.spi.utils.builder.TableConfigBuilder;
 import org.apache.pinot.tools.admin.command.AbstractBaseAdminCommand;
 import org.apache.pinot.tools.admin.command.AddSchemaCommand;
@@ -50,9 +55,11 @@ public class PinotUtils {
   private static final String PINOT_TABLES_CREATE_SUFFIX = "tables";
 
 
-  public static ViewCreationSpec.PinotTableSpec getPinotTableSpecFromViewGenerationSpec(ViewCreationSpec spec) {
+  public static ViewCreationSpec.PinotTableSpec getPinotTableSpecFromViewGenerationSpec(
+      ViewCreationSpec spec) {
     final ViewCreationSpec.PinotTableSpec pinotTableSpec = ConfigBeanFactory
-        .create(spec.getViewGeneratorConfig().getConfig(PINOT_CONFIGS_KEY), ViewCreationSpec.PinotTableSpec.class);
+        .create(spec.getViewGeneratorConfig().getConfig(PINOT_CONFIGS_KEY),
+            ViewCreationSpec.PinotTableSpec.class);
     final Config streamConfigs = spec.getViewGeneratorConfig().getConfig(PINOT_STREAM_CONFIGS_KEY);
     // ConfigBeanFactory will parse Map to nested structure. Try to reset streamConfigs as a flatten map.
     Map<String, Object> streamConfigsMap = new HashMap();
@@ -73,26 +80,30 @@ public class PinotUtils {
   }
 
   public static Schema createPinotSchemaForView(ViewCreationSpec spec) {
-    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(spec);
+    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(
+        spec);
     String schemaName = spec.getViewName();
     org.apache.avro.Schema avroSchema = spec.getOutputSchema();
     TimeUnit timeUnit = pinotTableSpec.getTimeUnit();
     String timeColumn = pinotTableSpec.getTimeColumn();
     List<String> dimensionColumns = pinotTableSpec.getDimensionColumns();
     List<String> metricColumns = pinotTableSpec.getMetricColumns();
+    List<String> dateTimeColumns = pinotTableSpec.getDateTimeColumns();
     Map<String, Object> columnsMaxLength = pinotTableSpec.getColumnsMaxLength();
     return convertAvroSchemaToPinotSchema(
-        avroSchema, schemaName, timeColumn, timeUnit, dimensionColumns, metricColumns, columnsMaxLength);
+        avroSchema, schemaName, timeColumn, timeUnit, dimensionColumns, metricColumns,
+        dateTimeColumns, columnsMaxLength);
   }
 
   public static boolean uploadPinotSchema(ViewCreationSpec spec, final Schema schema) {
-    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(spec);
+    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(
+        spec);
     return uploadPinotSchema(pinotTableSpec.getControllerHost(), pinotTableSpec.getControllerPort(),
         schema);
   }
 
   public static boolean uploadPinotSchema(String controllerHost, String controllerPort,
-                                          final Schema pinotSchemaFromAvroSchema) {
+      final Schema pinotSchemaFromAvroSchema) {
     File tmpFile = null;
     try {
       tmpFile = File
@@ -115,8 +126,9 @@ public class PinotUtils {
   }
 
   public static Schema convertAvroSchemaToPinotSchema(org.apache.avro.Schema avroSchema,
-                                                      String name, String timeColumn, TimeUnit timeUnit, List<String> dimensionColumns,
-                                                      List<String> metricColumns, Map<String, Object> columnsMaxLength) {
+      String name, String timeColumn, TimeUnit timeUnit, List<String> dimensionColumns,
+      List<String> metricColumns, List<String> dateTimeColumns,
+      Map<String, Object> columnsMaxLength) {
     Schema pinotSchema = new Schema();
     pinotSchema.setSchemaName(name);
 
@@ -140,9 +152,19 @@ public class PinotUtils {
             AvroUtils.extractFieldDataType(value),
             AvroUtils.isSingleValueField(value));
         fieldSpecs.add(fieldSpec);
-
       } else if (timeColumn.equals(field.name())) {
-        fieldSpec = new TimeFieldSpec(new TimeGranularitySpec(AvroUtils.extractFieldDataType(field), timeUnit, timeColumn));
+        validateDateTimeColumn(field, timeUnit);
+        fieldSpec = new DateTimeFieldSpec(field.name(), AvroUtils.extractFieldDataType(field),
+            new DateTimeFormatSpec(1, DateTimeTransformUnit.MILLISECONDS.name(), TimeFormat.EPOCH.name()).getFormat(),
+            new DateTimeGranularitySpec(1, timeUnit).getGranularity());
+        fieldSpecs.add(fieldSpec);
+      } else if (dateTimeColumns.contains(field.name())) {
+        validateDateTimeColumn(field, timeUnit);
+        fieldSpec = new DateTimeFieldSpec(field.name(), AvroUtils.extractFieldDataType(field),
+            new DateTimeFormatSpec(1,
+                new DateTimeFormatUnitSpec(timeUnit.toString()).getDateTimeTransformUnit().name(),
+                TimeFormat.EPOCH.name()).getFormat(),
+            new DateTimeGranularitySpec(1, timeUnit).getGranularity());
         fieldSpecs.add(fieldSpec);
       } else if (dimensionColumns.contains(field.name())) {
         fieldSpec = new DimensionFieldSpec(field.name(), AvroUtils.extractFieldDataType(field),
@@ -181,6 +203,23 @@ public class PinotUtils {
       }
     }
     return pinotSchema;
+  }
+
+  private static void validateDateTimeColumn(Field field, TimeUnit timeUnit) {
+    // In the current model, we don't have the flexibility to support/define other types or granularity.
+    // So, we can support only LONG types and MILLISECOND granularity only
+    // Till we fix the schema definition and parsing, these
+    final DataType pinotDataType = AvroUtils.extractFieldDataType(field);
+    if (pinotDataType != DataType.LONG) {
+      throw new RuntimeException(
+          "Unsupported type for a date time column. column: " + field.name() + ". Expected: " + Type.LONG
+              + ", Actual: " + field.schema().getType());
+    }
+    if (timeUnit != TimeUnit.MILLISECONDS) {
+      throw new RuntimeException(
+          "Unsupported unit for a date time column. column: " + field.name() + ". Expected:" + TimeUnit.MILLISECONDS
+              + ", Actual: " + timeUnit);
+    }
   }
 
   public static Pair<Field, Field> splitMapField(Field mapField) {
@@ -240,17 +279,19 @@ public class PinotUtils {
   }
 
   public static boolean sendPinotTableCreationRequest(ViewCreationSpec spec,
-                                                      final TableConfig tableConfig) {
-    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(spec);
+      final TableConfig tableConfig) {
+    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(
+        spec);
     return sendPinotTableCreationRequest(pinotTableSpec.getControllerHost(),
         pinotTableSpec.getControllerPort(), tableConfig.toJsonString());
   }
 
   public static boolean sendPinotTableCreationRequest(String controllerHost,
-                                                      String controllerPort, final String tableConfig) {
+      String controllerPort, final String tableConfig) {
     try {
       String controllerAddress = getControllerAddressForTableCreate(controllerHost, controllerPort);
-      LOGGER.info("Trying to send table creation request {} to {}. ", tableConfig, controllerAddress);
+      LOGGER
+          .info("Trying to send table creation request {} to {}. ", tableConfig, controllerAddress);
       String res = AbstractBaseAdminCommand.sendPostRequest(controllerAddress, tableConfig);
       LOGGER.info(res);
       return true;
@@ -260,7 +301,9 @@ public class PinotUtils {
     }
   }
 
-  private static String getControllerAddressForTableCreate(String controllerHost, String controllerPort) {
-    return String.format("http://%s:%s/%s", controllerHost, controllerPort, PINOT_TABLES_CREATE_SUFFIX);
+  private static String getControllerAddressForTableCreate(String controllerHost,
+      String controllerPort) {
+    return String
+        .format("http://%s:%s/%s", controllerHost, controllerPort, PINOT_TABLES_CREATE_SUFFIX);
   }
 }
