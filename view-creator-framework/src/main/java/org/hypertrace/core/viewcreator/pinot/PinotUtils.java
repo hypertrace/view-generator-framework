@@ -1,6 +1,19 @@
 package org.hypertrace.core.viewcreator.pinot;
 
-import com.google.common.collect.Maps;
+import static com.google.common.collect.Maps.newHashMap;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_CONFIGS_KEY;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_OFFLINE_CONFIGS_KEY;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_REALTIME_CONFIGS_KEY;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_REST_URI_TABLES;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_SCHEMA_MAP_KEYS_SUFFIX;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_SCHEMA_MAP_VALUES_SUFFIX;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_STREAM_CONFIGS_KEY;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.SIMPLE_AVRO_MESSAGE_DECODER;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_CONSUMER_TYPE_KEY;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_DECODER_CLASS_NAME_KEY;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY;
+
+import com.typesafe.config.Config;
 import com.typesafe.config.ConfigBeanFactory;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -35,41 +48,43 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PinotUtils {
-
-  public static final String PINOT_CONFIGS_KEY = "pinot";
-  public static final String PINOT_STREAM_CONFIGS_KEY = "pinot.streamConfigs";
-  public static final String STREAM_KAFKA_DECODER_CLASS_NAME_KEY =
-      "stream.kafka.decoder.class.name";
-  public static final String STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY =
-      "stream.kafka.decoder.prop.schema";
-  public static final String STREAM_KAFKA_CONSUMER_TYPE_KEY = "stream.kafka.consumer.type";
-  public static final String SIMPLE_AVRO_MESSAGE_DECODER =
-      "org.apache.pinot.core.realtime.stream.SimpleAvroMessageDecoder";
   private static final Logger LOGGER = LoggerFactory.getLogger(PinotUtils.class);
-  private static final String MAP_KEYS_SUFFIX = "__KEYS";
-  private static final String MAP_VALUES_SUFFIX = "__VALUES";
-  private static final String PINOT_TABLES_CREATE_SUFFIX = "tables";
 
-  public static PinotRealtimeTableSpec getPinotRealTimeTableSpec(ViewCreationSpec spec) {
-    final PinotRealtimeTableSpec pinotTableSpec =
-        ConfigBeanFactory.create(
-            spec.getViewGeneratorConfig().getConfig(PINOT_CONFIGS_KEY),
-            PinotRealtimeTableSpec.class);
-    // ConfigBeanFactory will parse Map to nested structure. Try to reset streamConfigs as a flatten
-    // map.
+  public static PinotTableSpec getPinotRealtimeTableSpec(ViewCreationSpec creationSpec) {
+    final Config viewCreatorConfig = creationSpec.getViewCreatorConfig();
+    final Config pinotRealtimeConfig =
+        viewCreatorConfig
+            .getConfig(PINOT_REALTIME_CONFIGS_KEY)
+            .withFallback(viewCreatorConfig.getConfig(PINOT_CONFIGS_KEY));
+    final PinotTableSpec pinotTableSpec =
+        ConfigBeanFactory.create(pinotRealtimeConfig, PinotTableSpec.class);
+
+    // ConfigBeanFactory will parse Map to nested structure. Try to reset streamConfigs as a
+    // flattened map.
     Map<String, Object> streamConfigsMap =
-        Maps.newHashMap(
-            ConfigUtils.getFlatMapConfig(spec.getViewGeneratorConfig(), PINOT_STREAM_CONFIGS_KEY));
+        newHashMap(ConfigUtils.getFlatMapConfig(pinotRealtimeConfig, PINOT_STREAM_CONFIGS_KEY));
     if (SIMPLE_AVRO_MESSAGE_DECODER.equals(
         streamConfigsMap.get(STREAM_KAFKA_DECODER_CLASS_NAME_KEY))) {
 
       // Try to infer output schema from ViewCreationSpec if not provided.
       if (!streamConfigsMap.containsKey(STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY)) {
         streamConfigsMap.put(
-            STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY, spec.getOutputSchema().toString());
+            STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY, creationSpec.getOutputSchema().toString());
       }
     }
     pinotTableSpec.setStreamConfigs(streamConfigsMap);
+
+    return pinotTableSpec;
+  }
+
+  public static PinotTableSpec getPinotOfflineTableSpec(ViewCreationSpec creationSpec) {
+    final Config viewCreatorConfig = creationSpec.getViewCreatorConfig();
+    final Config pinotOfflineConfig =
+        viewCreatorConfig
+            .getConfig(PINOT_OFFLINE_CONFIGS_KEY)
+            .withFallback(viewCreatorConfig.getConfig(PINOT_CONFIGS_KEY));
+    final PinotTableSpec pinotTableSpec =
+        ConfigBeanFactory.create(pinotOfflineConfig, PinotTableSpec.class);
     return pinotTableSpec;
   }
 
@@ -169,6 +184,8 @@ public class PinotUtils {
                 new DateTimeGranularitySpec(1, timeUnit).getGranularity());
         fieldSpecs.add(fieldSpec);
       } else if (dateTimeColumns.contains(field.name())) {
+        // No way to specify unit type or rich time formats. So, hard coding all date time columns
+        // to be millis
         validateDateTimeColumn(field, TimeUnit.MILLISECONDS);
         fieldSpec =
             new DateTimeFieldSpec(
@@ -227,9 +244,7 @@ public class PinotUtils {
 
   private static void validateDateTimeColumn(Field field, TimeUnit timeUnit) {
     // In the current model, we don't have the flexibility to support/define other types or
-    // granularity.
-    // So, we can support only LONG types and MILLISECOND granularity only
-    // Till we fix the schema definition and parsing, these
+    // granularity. So, we can support only LONG types.
     final DataType pinotDataType = AvroUtils.extractFieldDataType(field);
     if (pinotDataType != DataType.LONG) {
       throw new RuntimeException(
@@ -247,7 +262,7 @@ public class PinotUtils {
         org.apache.avro.Schema.createArray(org.apache.avro.Schema.create(Type.STRING));
     Field keysField =
         new Field(
-            mapField.name() + MAP_KEYS_SUFFIX,
+            mapField.name() + PINOT_SCHEMA_MAP_KEYS_SUFFIX,
             keysFieldSchema,
             mapField.doc(),
             new ArrayList<String>(),
@@ -258,7 +273,7 @@ public class PinotUtils {
 
     Field valuesField =
         new Field(
-            mapField.name() + MAP_VALUES_SUFFIX,
+            mapField.name() + PINOT_SCHEMA_MAP_VALUES_SUFFIX,
             valuesFieldSchema,
             mapField.doc(),
             new ArrayList<>(),
@@ -267,30 +282,35 @@ public class PinotUtils {
     return new Pair<>(keysField, valuesField);
   }
 
-  public static TableConfig buildRealTimeTableConfig(
-      ViewCreationSpec viewCreationSpec, PinotRealtimeTableSpec pinotTableSpec) {
-    return new TableConfigBuilder(TableType.REALTIME)
-        .setTableName(pinotTableSpec.getTableName())
-        .setLoadMode(pinotTableSpec.getLoadMode())
-        .setSchemaName(viewCreationSpec.getViewName())
-        // Indexing related fields
-        .setInvertedIndexColumns(pinotTableSpec.getInvertedIndexColumns())
-        .setBloomFilterColumns(pinotTableSpec.getBloomFilterColumns())
-        .setNoDictionaryColumns(pinotTableSpec.getNoDictionaryColumns())
-        .setRangeIndexColumns(pinotTableSpec.getRangeIndexColumns())
-        // Segment configs
-        .setTimeColumnName(pinotTableSpec.getTimeColumn())
-        .setTimeType(pinotTableSpec.getTimeUnit().toString())
-        .setNumReplicas(pinotTableSpec.getNumReplicas())
-        .setRetentionTimeValue(pinotTableSpec.getRetentionTimeValue())
-        .setRetentionTimeUnit(pinotTableSpec.getRetentionTimeUnit())
-        // Tenant configs
-        .setBrokerTenant(pinotTableSpec.getBrokerTenant())
-        .setServerTenant(pinotTableSpec.getServerTenant())
-        // Stream configs
-        .setLLC(isLLC(pinotTableSpec.getStreamConfigs()))
-        .setStreamConfigs((Map) pinotTableSpec.getStreamConfigs())
-        .build();
+  public static TableConfig buildPinotTableConfig(
+      ViewCreationSpec viewCreationSpec, PinotTableSpec pinotTableSpec, TableType tableType) {
+    TableConfigBuilder tableConfigBuilder =
+        new TableConfigBuilder(tableType)
+            .setTableName(pinotTableSpec.getTableName())
+            .setLoadMode(pinotTableSpec.getLoadMode())
+            .setSchemaName(viewCreationSpec.getViewName())
+            // Indexing related fields
+            .setInvertedIndexColumns(pinotTableSpec.getInvertedIndexColumns())
+            .setBloomFilterColumns(pinotTableSpec.getBloomFilterColumns())
+            .setNoDictionaryColumns(pinotTableSpec.getNoDictionaryColumns())
+            .setRangeIndexColumns(pinotTableSpec.getRangeIndexColumns())
+            // Segment configs
+            .setTimeColumnName(pinotTableSpec.getTimeColumn())
+            .setTimeType(pinotTableSpec.getTimeUnit().toString())
+            .setNumReplicas(pinotTableSpec.getNumReplicas())
+            .setRetentionTimeValue(pinotTableSpec.getRetentionTimeValue())
+            .setRetentionTimeUnit(pinotTableSpec.getRetentionTimeUnit())
+            // Tenant configs
+            .setBrokerTenant(pinotTableSpec.getBrokerTenant())
+            .setServerTenant(pinotTableSpec.getServerTenant());
+
+    if (tableType == TableType.REALTIME) {
+      // Stream configs only for REALTIME
+      tableConfigBuilder
+          .setLLC(isLLC(pinotTableSpec.getStreamConfigs()))
+          .setStreamConfigs((Map) pinotTableSpec.getStreamConfigs());
+    }
+    return tableConfigBuilder.build();
   }
 
   private static boolean isLLC(Map<String, Object> streamConfigs) {
@@ -299,8 +319,7 @@ public class PinotUtils {
   }
 
   public static boolean sendPinotTableCreationRequest(
-      ViewCreationSpec spec, final TableConfig tableConfig) {
-    final PinotTableSpec pinotTableSpec = getPinotRealTimeTableSpec(spec);
+      PinotTableSpec pinotTableSpec, final TableConfig tableConfig) {
     return sendPinotTableCreationRequest(
         pinotTableSpec.getControllerHost(),
         pinotTableSpec.getControllerPort(),
@@ -324,7 +343,6 @@ public class PinotUtils {
 
   private static String getControllerAddressForTableCreate(
       String controllerHost, String controllerPort) {
-    return String.format(
-        "http://%s:%s/%s", controllerHost, controllerPort, PINOT_TABLES_CREATE_SUFFIX);
+    return String.format("http://%s:%s/%s", controllerHost, controllerPort, PINOT_REST_URI_TABLES);
   }
 }

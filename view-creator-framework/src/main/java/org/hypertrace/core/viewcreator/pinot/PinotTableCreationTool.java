@@ -1,8 +1,11 @@
 package org.hypertrace.core.viewcreator.pinot;
 
-import static org.hypertrace.core.viewcreator.pinot.PinotUtils.buildRealTimeTableConfig;
+import static org.apache.pinot.spi.config.table.TableType.OFFLINE;
+import static org.apache.pinot.spi.config.table.TableType.REALTIME;
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.buildPinotTableConfig;
 import static org.hypertrace.core.viewcreator.pinot.PinotUtils.createPinotSchemaForView;
-import static org.hypertrace.core.viewcreator.pinot.PinotUtils.getPinotRealTimeTableSpec;
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.getPinotOfflineTableSpec;
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.getPinotRealtimeTableSpec;
 import static org.hypertrace.core.viewcreator.pinot.PinotUtils.sendPinotTableCreationRequest;
 import static org.hypertrace.core.viewcreator.pinot.PinotUtils.uploadPinotSchema;
 
@@ -24,17 +27,29 @@ public class PinotTableCreationTool implements TableCreationTool {
 
   @Override
   public void create() {
-    final PinotRealtimeTableSpec realtimeTableSpec = getPinotRealTimeTableSpec(viewCreationSpec);
+    final PinotTableSpec realtimeTableSpec = getPinotRealtimeTableSpec(viewCreationSpec);
+
     final Schema pinotSchemaForView = createPinotSchemaForView(viewCreationSpec, realtimeTableSpec);
     LOGGER.info("Convert Pinot Schema from View: {}", pinotSchemaForView);
     final boolean uploadPinotSchema = uploadPinotSchema(realtimeTableSpec, pinotSchemaForView);
     if (!uploadPinotSchema) {
-      throw new RuntimeException("Failed to upload pinot schema.");
+      throw new RuntimeException(
+          "Failed to upload pinot schema: " + pinotSchemaForView.getSchemaName());
     }
-    final TableConfig tableConfig = buildRealTimeTableConfig(viewCreationSpec, realtimeTableSpec);
-    final boolean createPinotTable = sendPinotTableCreationRequest(viewCreationSpec, tableConfig);
-    if (!createPinotTable) {
-      throw new RuntimeException("Failed to create pinot table.");
+
+    final TableConfig realtimeTableConfig =
+        buildPinotTableConfig(viewCreationSpec, realtimeTableSpec, REALTIME);
+    if (!sendPinotTableCreationRequest(realtimeTableSpec, realtimeTableConfig)) {
+      throw new RuntimeException(
+          "Failed to create pinot realtime table: " + viewCreationSpec.getViewName());
+    }
+
+    final PinotTableSpec offlineTableSpec = getPinotOfflineTableSpec(viewCreationSpec);
+    final TableConfig offlineTableConfig =
+        buildPinotTableConfig(viewCreationSpec, offlineTableSpec, OFFLINE);
+    if (!sendPinotTableCreationRequest(offlineTableSpec, offlineTableConfig)) {
+      throw new RuntimeException(
+          "Failed to create pinot offline table: " + viewCreationSpec.getViewName());
     }
   }
 }

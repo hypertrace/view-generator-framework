@@ -1,12 +1,14 @@
 package org.hypertrace.core.viewcreator;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.io.File;
 import org.hypertrace.core.serviceframework.config.ConfigClient;
 import org.hypertrace.core.viewcreator.pinot.PinotMultiTableCreationTool;
 import org.hypertrace.core.viewcreator.pinot.PinotTableCreationTool;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -21,8 +23,8 @@ class ViewCreatorLauncherTest {
 
     TableCreationTool creationTool =
         new ViewCreatorLauncher(configClient).getTableCreationTool(configs);
-    Assertions.assertNotNull(creationTool);
-    Assertions.assertTrue(creationTool instanceof PinotTableCreationTool);
+    assertNotNull(creationTool);
+    assertTrue(creationTool instanceof PinotTableCreationTool);
   }
 
   @Test
@@ -34,8 +36,8 @@ class ViewCreatorLauncherTest {
 
     TableCreationTool creationTool =
         new ViewCreatorLauncher(configClient).getTableCreationTool(configs);
-    Assertions.assertNotNull(creationTool);
-    Assertions.assertTrue(creationTool instanceof PinotMultiTableCreationTool);
+    assertNotNull(creationTool);
+    assertTrue(creationTool instanceof PinotMultiTableCreationTool);
   }
 
   private Config createConfig(String resourcePath) {

@@ -1,20 +1,20 @@
 package org.hypertrace.core.viewcreator.pinot;
 
+import static org.apache.pinot.spi.config.table.TableType.REALTIME;
 import static org.apache.pinot.spi.data.FieldSpec.DEFAULT_DIMENSION_NULL_VALUE_OF_STRING;
 import static org.hypertrace.core.viewcreator.pinot.PinotUtils.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.typesafe.config.ConfigFactory;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.apache.pinot.spi.config.table.TableConfig;
-import org.apache.pinot.spi.config.table.TableType;
 import org.apache.pinot.spi.data.DateTimeFieldSpec;
 import org.apache.pinot.spi.data.DateTimeFormatSpec;
 import org.apache.pinot.spi.data.FieldSpec.DataType;
 import org.apache.pinot.spi.data.Schema;
 import org.hypertrace.core.viewcreator.ViewCreationSpec;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,62 +33,54 @@ public class PinotUtilsTest {
                         .getClassLoader()
                         .getResource("sample-view-generation-spec.conf")
                         .getPath())));
-    final PinotRealtimeTableSpec pinotTableSpec = getPinotRealTimeTableSpec(viewCreationSpec);
+    final PinotTableSpec pinotTableSpec = getPinotRealtimeTableSpec(viewCreationSpec);
 
     final Schema pinotSchemaForView = createPinotSchemaForView(viewCreationSpec, pinotTableSpec);
     LOGGER.info("Convert Pinot Schema from View: {}", pinotSchemaForView);
-    Assertions.assertEquals(viewCreationSpec.getViewName(), pinotSchemaForView.getSchemaName());
+    assertEquals(viewCreationSpec.getViewName(), pinotSchemaForView.getSchemaName());
     // creation_time_millis not included in dimension columns
-    Assertions.assertEquals(5, pinotSchemaForView.getDimensionNames().size());
-    Assertions.assertEquals(1, pinotSchemaForView.getMetricFieldSpecs().size());
-    Assertions.assertEquals(
-        DataType.STRING, pinotSchemaForView.getDimensionSpec("name").getDataType());
-    Assertions.assertEquals(
-        DataType.BYTES, pinotSchemaForView.getDimensionSpec("id_sha").getDataType());
-    Assertions.assertEquals(64, pinotSchemaForView.getDimensionSpec("id_sha").getMaxLength());
-    Assertions.assertFalse(pinotSchemaForView.getDimensionSpec("friends").isSingleValueField());
-    Assertions.assertFalse(
-        pinotSchemaForView.getDimensionSpec("properties__KEYS").isSingleValueField());
-    Assertions.assertEquals(
+    assertEquals(5, pinotSchemaForView.getDimensionNames().size());
+    assertEquals(1, pinotSchemaForView.getMetricFieldSpecs().size());
+    assertEquals(DataType.STRING, pinotSchemaForView.getDimensionSpec("name").getDataType());
+    assertEquals(DataType.BYTES, pinotSchemaForView.getDimensionSpec("id_sha").getDataType());
+    assertEquals(64, pinotSchemaForView.getDimensionSpec("id_sha").getMaxLength());
+    assertFalse(pinotSchemaForView.getDimensionSpec("friends").isSingleValueField());
+    assertFalse(pinotSchemaForView.getDimensionSpec("properties__KEYS").isSingleValueField());
+    assertEquals(
         DataType.STRING, pinotSchemaForView.getDimensionSpec("properties__KEYS").getDataType());
-    Assertions.assertEquals(
-        "", pinotSchemaForView.getDimensionSpec("properties__KEYS").getDefaultNullValue());
-    Assertions.assertFalse(
-        pinotSchemaForView.getDimensionSpec("properties__VALUES").isSingleValueField());
-    Assertions.assertEquals(
+    assertEquals("", pinotSchemaForView.getDimensionSpec("properties__KEYS").getDefaultNullValue());
+    assertFalse(pinotSchemaForView.getDimensionSpec("properties__VALUES").isSingleValueField());
+    assertEquals(
         DataType.STRING, pinotSchemaForView.getDimensionSpec("properties__VALUES").getDataType());
-    Assertions.assertEquals(
-        "", pinotSchemaForView.getDimensionSpec("properties__KEYS").getDefaultNullValue());
-    Assertions.assertEquals(
+    assertEquals("", pinotSchemaForView.getDimensionSpec("properties__KEYS").getDefaultNullValue());
+    assertEquals(
         DEFAULT_DIMENSION_NULL_VALUE_OF_STRING,
         pinotSchemaForView.getDimensionSpec("name").getDefaultNullValue());
-    Assertions.assertEquals(
+    assertEquals(
         DEFAULT_DIMENSION_NULL_VALUE_OF_STRING,
         pinotSchemaForView.getDimensionSpec("friends").getDefaultNullValue());
     // metric fields are not part of dimension columns
-    Assertions.assertEquals(
-        "time_taken_millis", pinotSchemaForView.getMetricFieldSpecs().get(0).getName());
-    Assertions.assertEquals(
-        DataType.LONG, pinotSchemaForView.getMetricFieldSpecs().get(0).getDataType());
+    assertEquals("time_taken_millis", pinotSchemaForView.getMetricFieldSpecs().get(0).getName());
+    assertEquals(DataType.LONG, pinotSchemaForView.getMetricFieldSpecs().get(0).getDataType());
 
-    Assertions.assertEquals(3, pinotSchemaForView.getDateTimeFieldSpecs().size());
+    assertEquals(3, pinotSchemaForView.getDateTimeFieldSpecs().size());
 
     DateTimeFieldSpec dateTimeFieldSpec =
         pinotSchemaForView.getDateTimeSpec("creation_time_millis");
-    Assertions.assertEquals("creation_time_millis", dateTimeFieldSpec.getName());
-    Assertions.assertEquals(
+    assertEquals("creation_time_millis", dateTimeFieldSpec.getName());
+    assertEquals(
         TimeUnit.MILLISECONDS,
         new DateTimeFormatSpec(dateTimeFieldSpec.getFormat()).getColumnUnit());
-    Assertions.assertEquals(DataType.LONG, dateTimeFieldSpec.getDataType());
-    Assertions.assertEquals(-1L, dateTimeFieldSpec.getDefaultNullValue());
+    assertEquals(DataType.LONG, dateTimeFieldSpec.getDataType());
+    assertEquals(-1L, dateTimeFieldSpec.getDefaultNullValue());
 
     dateTimeFieldSpec = pinotSchemaForView.getDateTimeSpec("start_time_millis");
-    Assertions.assertEquals("start_time_millis", dateTimeFieldSpec.getName());
-    Assertions.assertEquals(
+    assertEquals("start_time_millis", dateTimeFieldSpec.getName());
+    assertEquals(
         TimeUnit.MILLISECONDS,
         new DateTimeFormatSpec(dateTimeFieldSpec.getFormat()).getColumnUnit());
-    Assertions.assertEquals(DataType.LONG, dateTimeFieldSpec.getDataType());
-    Assertions.assertEquals(0L, dateTimeFieldSpec.getDefaultNullValue());
+    assertEquals(DataType.LONG, dateTimeFieldSpec.getDataType());
+    assertEquals(0L, dateTimeFieldSpec.getDefaultNullValue());
   }
 
   @Test
@@ -101,60 +93,60 @@ public class PinotUtilsTest {
                         .getClassLoader()
                         .getResource("sample-view-generation-spec.conf")
                         .getPath())));
-    final PinotRealtimeTableSpec pinotTableSpec = getPinotRealTimeTableSpec(viewCreationSpec);
-    final TableConfig tableConfig = buildRealTimeTableConfig(viewCreationSpec, pinotTableSpec);
+    final PinotTableSpec pinotTableSpec = getPinotRealtimeTableSpec(viewCreationSpec);
+    final TableConfig tableConfig =
+        buildPinotTableConfig(viewCreationSpec, pinotTableSpec, REALTIME);
     LOGGER.info("Pinot Table Config for View: {}", tableConfig);
-    Assertions.assertEquals("myView1_REALTIME", tableConfig.getTableName());
-    Assertions.assertEquals(TableType.REALTIME, tableConfig.getTableType());
-    Assertions.assertEquals("MMAP", tableConfig.getIndexingConfig().getLoadMode());
-    Assertions.assertEquals(
-        "kafka", tableConfig.getIndexingConfig().getStreamConfigs().get("streamType"));
-    Assertions.assertEquals(
+    assertEquals("myView1_REALTIME", tableConfig.getTableName());
+    assertEquals(REALTIME, tableConfig.getTableType());
+    assertEquals("MMAP", tableConfig.getIndexingConfig().getLoadMode());
+    assertEquals("kafka", tableConfig.getIndexingConfig().getStreamConfigs().get("streamType"));
+    assertEquals(
         "LowLevel",
         tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.consumer.type"));
-    Assertions.assertEquals(
+    assertEquals(
         "test-view-events",
         tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.topic.name"));
-    Assertions.assertEquals(
+    assertEquals(
         "org.apache.pinot.plugin.stream.kafka20.KafkaConsumerFactory",
         tableConfig
             .getIndexingConfig()
             .getStreamConfigs()
             .get("stream.kafka.consumer.factory.class.name"));
-    Assertions.assertEquals(
+    assertEquals(
         "org.apache.pinot.plugin.inputformat.avro.confluent.KafkaConfluentSchemaRegistryAvroMessageDecoder",
         tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.decoder.class.name"));
-    Assertions.assertEquals(
+    assertEquals(
         "localhost:2181",
         tableConfig
             .getIndexingConfig()
             .getStreamConfigs()
             .get("stream.kafka.hlc.zk.connect.string"));
-    Assertions.assertEquals(
+    assertEquals(
         "localhost:2181",
         tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.zk.broker.url"));
-    Assertions.assertEquals(
+    assertEquals(
         "localhost:9092",
         tableConfig.getIndexingConfig().getStreamConfigs().get("stream.kafka.broker.list"));
-    Assertions.assertEquals(
+    assertEquals(
         "http://localhost:8081",
         tableConfig
             .getIndexingConfig()
             .getStreamConfigs()
             .get("stream.kafka.decoder.prop.schema.registry.rest.url"));
-    Assertions.assertEquals(
+    assertEquals(
         "3600000",
         tableConfig
             .getIndexingConfig()
             .getStreamConfigs()
             .get("realtime.segment.flush.threshold.time"));
-    Assertions.assertEquals(
+    assertEquals(
         "500000",
         tableConfig
             .getIndexingConfig()
             .getStreamConfigs()
             .get("realtime.segment.flush.threshold.size"));
-    Assertions.assertEquals(
+    assertEquals(
         "largest",
         tableConfig
             .getIndexingConfig()
@@ -162,32 +154,30 @@ public class PinotUtilsTest {
             .get("stream.kafka.consumer.prop.auto.offset.reset"));
 
     // Verify tenant configs
-    Assertions.assertEquals("defaultBroker", tableConfig.getTenantConfig().getBroker());
-    Assertions.assertEquals("defaultServer", tableConfig.getTenantConfig().getServer());
+    assertEquals("defaultBroker", tableConfig.getTenantConfig().getBroker());
+    assertEquals("defaultServer", tableConfig.getTenantConfig().getServer());
 
     // Verify indexing related configs
-    Assertions.assertTrue(
+    assertTrue(
         tableConfig
             .getIndexingConfig()
             .getRangeIndexColumns()
             .containsAll(List.of("creation_time_millis", "start_time_millis")));
-    Assertions.assertEquals(
+    assertEquals(
         List.of("properties__VALUES"), tableConfig.getIndexingConfig().getNoDictionaryColumns());
-    Assertions.assertEquals(
-        List.of("id_sha"), tableConfig.getIndexingConfig().getBloomFilterColumns());
+    assertEquals(List.of("id_sha"), tableConfig.getIndexingConfig().getBloomFilterColumns());
 
     // Verify segment configs
-    Assertions.assertEquals(1, tableConfig.getValidationConfig().getReplicationNumber());
-    Assertions.assertEquals("3", tableConfig.getValidationConfig().getRetentionTimeValue());
-    Assertions.assertEquals("DAYS", tableConfig.getValidationConfig().getRetentionTimeUnit());
-    Assertions.assertEquals(
+    assertEquals(1, tableConfig.getValidationConfig().getReplicationNumber());
+    assertEquals("3", tableConfig.getValidationConfig().getRetentionTimeValue());
+    assertEquals("DAYS", tableConfig.getValidationConfig().getRetentionTimeUnit());
+    assertEquals(
         "BalanceNumSegmentAssignmentStrategy",
         tableConfig.getValidationConfig().getSegmentAssignmentStrategy());
 
     // TODO: This is deprecated
-    Assertions.assertEquals(
-        "creation_time_millis", tableConfig.getValidationConfig().getTimeColumnName());
+    assertEquals("creation_time_millis", tableConfig.getValidationConfig().getTimeColumnName());
     // TODO: This is deprecated
-    Assertions.assertEquals(TimeUnit.MILLISECONDS, tableConfig.getValidationConfig().getTimeType());
+    assertEquals(TimeUnit.MILLISECONDS, tableConfig.getValidationConfig().getTimeType());
   }
 }

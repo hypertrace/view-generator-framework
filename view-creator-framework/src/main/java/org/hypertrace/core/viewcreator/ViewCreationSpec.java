@@ -10,13 +10,13 @@ public class ViewCreationSpec {
 
   private final String viewName;
   private final String viewOutputSchemaClassName;
-  private final Config viewGeneratorConfig;
+  private final Config viewCreatorConfig;
 
   public ViewCreationSpec(
-      String viewName, String viewOutputSchemaClassName, Config viewGeneratorConfig) {
+      String viewName, String viewOutputSchemaClassName, Config viewCreatorConfig) {
     this.viewName = viewName;
     this.viewOutputSchemaClassName = viewOutputSchemaClassName;
-    this.viewGeneratorConfig = viewGeneratorConfig;
+    this.viewCreatorConfig = viewCreatorConfig;
   }
 
   public static ViewCreationSpec parse(Config configs) {
@@ -30,8 +30,8 @@ public class ViewCreationSpec {
     return viewName;
   }
 
-  public Config getViewGeneratorConfig() {
-    return viewGeneratorConfig;
+  public Config getViewCreatorConfig() {
+    return viewCreatorConfig;
   }
 
   // Best effort to extract output schema of a JAVA_CODE based ViewGenerator.

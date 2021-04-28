@@ -29,6 +29,9 @@ public class PinotTableSpec {
   private List<String> rangeIndexColumns;
   private Map<String, Object> columnsMaxLength;
 
+  // Stream configs
+  private Map<String, Object> streamConfigs;
+
   // Segments config
   private int numReplicas;
   private TimeUnit timeUnit;

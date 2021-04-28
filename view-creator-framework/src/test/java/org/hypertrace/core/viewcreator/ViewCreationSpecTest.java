@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.hypertrace.core.viewcreator.pinot.PinotRealtimeTableSpec;
+import org.hypertrace.core.viewcreator.pinot.PinotTableSpec;
 import org.hypertrace.core.viewcreator.pinot.PinotUtils;
 import org.hypertrace.core.viewcreator.test.api.TestView;
 import org.junit.jupiter.api.Test;
@@ -27,8 +27,7 @@ public class ViewCreationSpecTest {
     assertEquals(viewCreationSpec.getOutputSchema(), TestView.getClassSchema());
 
     // Test PinotTableSpec
-    final PinotRealtimeTableSpec pinotTableSpec =
-        PinotUtils.getPinotRealTimeTableSpec(viewCreationSpec);
+    final PinotTableSpec pinotTableSpec = PinotUtils.getPinotRealtimeTableSpec(viewCreationSpec);
     assertEquals(pinotTableSpec.getControllerHost(), "localhost");
     assertEquals(pinotTableSpec.getControllerPort(), "9000");
     assertEquals(pinotTableSpec.getTimeColumn(), "creation_time_millis");
@@ -84,7 +83,7 @@ public class ViewCreationSpecTest {
     ViewCreationSpec viewCreationSpec =
         createViewCreationSpecUsingConfig("sample-view-generation-spec-without-schema.conf");
     final Map<String, Object> streamConfigs =
-        PinotUtils.getPinotRealTimeTableSpec(viewCreationSpec).getStreamConfigs();
+        PinotUtils.getPinotRealtimeTableSpec(viewCreationSpec).getStreamConfigs();
     assertEquals(
         streamConfigs.get("stream.kafka.decoder.prop.schema"),
         TestView.getClassSchema().toString());
