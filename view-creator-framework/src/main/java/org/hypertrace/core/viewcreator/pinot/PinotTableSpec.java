@@ -43,6 +43,4 @@ public class PinotTableSpec {
   // Tenants config
   private String brokerTenant;
   private String serverTenant;
-
-  public PinotTableSpec() {}
 }
