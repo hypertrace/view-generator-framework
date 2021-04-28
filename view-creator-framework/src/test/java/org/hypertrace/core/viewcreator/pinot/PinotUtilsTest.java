@@ -1,6 +1,7 @@
 package org.hypertrace.core.viewcreator.pinot;
 
 import static org.apache.pinot.spi.data.FieldSpec.DEFAULT_DIMENSION_NULL_VALUE_OF_STRING;
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.*;
 
 import com.typesafe.config.ConfigFactory;
 import java.io.File;
@@ -24,10 +25,12 @@ public class PinotUtilsTest {
 
   @Test
   public void testCreatePinotSchemaForView() {
-    ViewCreationSpec viewCreationSpec = ViewCreationSpec.parse(ConfigFactory.parseFile(
+    final ViewCreationSpec viewCreationSpec = ViewCreationSpec.parse(ConfigFactory.parseFile(
         new File(this.getClass().getClassLoader()
             .getResource("sample-view-generation-spec.conf").getPath())));
-    final Schema pinotSchemaForView = PinotUtils.createPinotSchemaForView(viewCreationSpec);
+    final PinotRealtimeTableSpec pinotTableSpec = getPinotRealTimeTableSpec(viewCreationSpec);
+
+    final Schema pinotSchemaForView = createPinotSchemaForView(viewCreationSpec, pinotTableSpec);
     LOGGER.info("Convert Pinot Schema from View: {}", pinotSchemaForView);
     Assertions.assertEquals(viewCreationSpec.getViewName(), pinotSchemaForView.getSchemaName());
     // creation_time_millis not included in dimension columns
@@ -83,11 +86,11 @@ public class PinotUtilsTest {
 
   @Test
   public void testCreatePinotTableForView() {
-    ViewCreationSpec viewCreationSpec = ViewCreationSpec.parse(ConfigFactory.parseFile(
+    final ViewCreationSpec viewCreationSpec = ViewCreationSpec.parse(ConfigFactory.parseFile(
         new File(this.getClass().getClassLoader()
             .getResource("sample-view-generation-spec.conf").getPath())));
-
-    final TableConfig tableConfig = PinotUtils.createPinotTableConfig(viewCreationSpec);
+    final PinotRealtimeTableSpec pinotTableSpec = getPinotRealTimeTableSpec(viewCreationSpec);
+    final TableConfig tableConfig = buildRealTimeTableConfig(viewCreationSpec, pinotTableSpec);
 
     LOGGER.info("Pinot Table Config for View: {}", tableConfig);
     Assertions.assertEquals("myView1_REALTIME", tableConfig.getTableName());

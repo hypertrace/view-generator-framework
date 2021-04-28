@@ -1,5 +1,11 @@
 package org.hypertrace.core.viewcreator.pinot;
 
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.createPinotSchemaForView;
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.buildRealTimeTableConfig;
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.getPinotRealTimeTableSpec;
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.sendPinotTableCreationRequest;
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.uploadPinotSchema;
+
 import org.apache.pinot.spi.config.table.TableConfig;
 import org.apache.pinot.spi.data.Schema;
 import org.hypertrace.core.viewcreator.TableCreationTool;
@@ -18,18 +24,17 @@ public class PinotTableCreationTool implements TableCreationTool {
 
   @Override
   public void create() {
-    final Schema pinotSchemaForView = PinotUtils.createPinotSchemaForView(viewCreationSpec);
+    final PinotRealtimeTableSpec realtimeTableSpec = getPinotRealTimeTableSpec(viewCreationSpec);
+    final Schema pinotSchemaForView = createPinotSchemaForView(viewCreationSpec, realtimeTableSpec);
     LOGGER.info("Convert Pinot Schema from View: {}", pinotSchemaForView);
-    final boolean uploadPinotSchema =
-        PinotUtils.uploadPinotSchema(viewCreationSpec, pinotSchemaForView);
+    final boolean uploadPinotSchema = uploadPinotSchema(realtimeTableSpec, pinotSchemaForView);
     if (!uploadPinotSchema) {
-      throw new RuntimeException("Failed to upload Pinot schema.");
+      throw new RuntimeException("Failed to upload pinot schema.");
     }
-    final TableConfig tableConfig = PinotUtils.createPinotTableConfig(viewCreationSpec);
-    final boolean createPinotTable =
-        PinotUtils.sendPinotTableCreationRequest(viewCreationSpec, tableConfig);
+    final TableConfig tableConfig = buildRealTimeTableConfig(viewCreationSpec, realtimeTableSpec);
+    final boolean createPinotTable = sendPinotTableCreationRequest(viewCreationSpec, tableConfig);
     if (!createPinotTable) {
-      throw new RuntimeException("Failed to create Pinot table.");
+      throw new RuntimeException("Failed to create pinot table.");
     }
   }
 }
