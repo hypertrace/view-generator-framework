@@ -6,8 +6,8 @@ import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.streams.kstream.ValueMapper;
 import org.hypertrace.core.viewgenerator.JavaCodeBasedViewGenerator;
 
-public class InputToViewMapper<IN extends SpecificRecord, OUT extends GenericRecord> implements
-    ValueMapper<IN, List<OUT>> {
+public class InputToViewMapper<IN extends SpecificRecord, OUT extends GenericRecord>
+    implements ValueMapper<IN, List<OUT>> {
 
   private String viewgenClassName;
   private Class<OUT> viewClass;
@@ -25,8 +25,8 @@ public class InputToViewMapper<IN extends SpecificRecord, OUT extends GenericRec
   }
 
   private JavaCodeBasedViewGenerator createViewGenerator() throws Exception {
-    return (JavaCodeBasedViewGenerator) Class.forName(this.viewgenClassName)
-        .getDeclaredConstructor().newInstance();
+    return (JavaCodeBasedViewGenerator)
+        Class.forName(this.viewgenClassName).getDeclaredConstructor().newInstance();
   }
 
   public Class<OUT> getViewClass() {

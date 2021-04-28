@@ -17,8 +17,8 @@ public class ViewCreationSpec {
   private final String viewOutputSchemaClassName;
   private final Config viewGeneratorConfig;
 
-  public ViewCreationSpec(String viewName, String viewOutputSchemaClassName,
-                          Config viewGeneratorConfig) {
+  public ViewCreationSpec(
+      String viewName, String viewOutputSchemaClassName, Config viewGeneratorConfig) {
     this.viewName = viewName;
     this.viewOutputSchemaClassName = viewOutputSchemaClassName;
     this.viewGeneratorConfig = viewGeneratorConfig;
@@ -28,8 +28,7 @@ public class ViewCreationSpec {
     return new ViewCreationSpec(
         configs.getString(VIEW_NAME_CONFIG),
         configs.getString(VIEW_OUTPUT_SCHEMA_CLASS_CONFIG),
-        configs
-    );
+        configs);
   }
 
   public String getViewName() {
@@ -45,8 +44,8 @@ public class ViewCreationSpec {
   // implemented without other runtime dependencies.
   public Schema getOutputSchema() {
     try {
-      final Class<SpecificRecord> outputSchemaClass = (Class<SpecificRecord>) Class
-          .forName(this.viewOutputSchemaClassName);
+      final Class<SpecificRecord> outputSchemaClass =
+          (Class<SpecificRecord>) Class.forName(this.viewOutputSchemaClassName);
       final SpecificRecord schemaObject = outputSchemaClass.getDeclaredConstructor().newInstance();
       return schemaObject.getSchema();
     } catch (Exception e) {
@@ -67,8 +66,7 @@ public class ViewCreationSpec {
 
     private List<String> dimensionColumns;
     private List<String> metricColumns;
-    @Optional
-    private List<String> dateTimeColumns = Collections.EMPTY_LIST;
+    @Optional private List<String> dateTimeColumns = Collections.EMPTY_LIST;
 
     // Table index configs
     private List<String> invertedIndexColumns;
@@ -92,9 +90,7 @@ public class ViewCreationSpec {
     private String brokerTenant;
     private String serverTenant;
 
-    public PinotTableSpec() {
-
-    }
+    public PinotTableSpec() {}
 
     public String getControllerHost() {
       return this.controllerHost;
@@ -275,8 +271,7 @@ public class ViewCreationSpec {
     private int partitions;
     private int replicationFactor;
 
-    public KafkaSpec() {
-    }
+    public KafkaSpec() {}
 
     public String getBrokerAddress() {
       return this.brokerAddress;
@@ -312,7 +307,8 @@ public class ViewCreationSpec {
 
     @Override
     public String toString() {
-      return String.format("Topic Name: %s, Partitions: %d, ReplicationFactor: %d, BrokerAddress: %s",
+      return String.format(
+          "Topic Name: %s, Partitions: %d, ReplicationFactor: %d, BrokerAddress: %s",
           topicName, partitions, replicationFactor, brokerAddress);
     }
   }
