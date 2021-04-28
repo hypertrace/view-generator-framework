@@ -30,7 +30,7 @@ public class PinotTableSpec {
   private Map<String, Object> columnsMaxLength;
 
   // Stream configs
-  private Map<String, Object> streamConfigs;
+  @Optional private Map<String, Object> streamConfigs;
 
   // Segments config
   private int numReplicas;

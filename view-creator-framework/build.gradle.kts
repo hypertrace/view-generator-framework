@@ -47,6 +47,7 @@ dependencies {
     exclude("org.apache.logging.log4j", "log4j-core")
     exclude("org.apache.pinot", "pinot-controller")
     exclude("org.apache.pinot", "pinot-broker")
+    exclude("org.apache.pinot", "pinot-kafka-2")
     exclude("org.apache.pinot", "pinot-parquet")
     exclude("org.apache.pinot", "pinot-server")
     exclude("org.apache.pinot", "pinot-s3")

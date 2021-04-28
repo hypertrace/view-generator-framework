@@ -83,12 +83,10 @@ public class PinotUtils {
         viewCreatorConfig
             .getConfig(PINOT_OFFLINE_CONFIGS_KEY)
             .withFallback(viewCreatorConfig.getConfig(PINOT_CONFIGS_KEY));
-    final PinotTableSpec pinotTableSpec =
-        ConfigBeanFactory.create(pinotOfflineConfig, PinotTableSpec.class);
-    return pinotTableSpec;
+    return ConfigBeanFactory.create(pinotOfflineConfig, PinotTableSpec.class);
   }
 
-  public static Schema createPinotSchemaForView(
+  public static Schema createPinotSchema(
       ViewCreationSpec viewCreationSpec, PinotTableSpec pinotTableSpec) {
     String schemaName = viewCreationSpec.getViewName();
     org.apache.avro.Schema avroSchema = viewCreationSpec.getOutputSchema();

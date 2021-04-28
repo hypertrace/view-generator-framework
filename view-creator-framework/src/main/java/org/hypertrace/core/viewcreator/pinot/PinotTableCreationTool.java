@@ -3,7 +3,7 @@ package org.hypertrace.core.viewcreator.pinot;
 import static org.apache.pinot.spi.config.table.TableType.OFFLINE;
 import static org.apache.pinot.spi.config.table.TableType.REALTIME;
 import static org.hypertrace.core.viewcreator.pinot.PinotUtils.buildPinotTableConfig;
-import static org.hypertrace.core.viewcreator.pinot.PinotUtils.createPinotSchemaForView;
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.createPinotSchema;
 import static org.hypertrace.core.viewcreator.pinot.PinotUtils.getPinotOfflineTableSpec;
 import static org.hypertrace.core.viewcreator.pinot.PinotUtils.getPinotRealtimeTableSpec;
 import static org.hypertrace.core.viewcreator.pinot.PinotUtils.sendPinotTableCreationRequest;
@@ -29,7 +29,7 @@ public class PinotTableCreationTool implements TableCreationTool {
   public void create() {
     final PinotTableSpec realtimeTableSpec = getPinotRealtimeTableSpec(viewCreationSpec);
 
-    final Schema pinotSchemaForView = createPinotSchemaForView(viewCreationSpec, realtimeTableSpec);
+    final Schema pinotSchemaForView = createPinotSchema(viewCreationSpec, realtimeTableSpec);
     LOGGER.info("Convert Pinot Schema from View: {}", pinotSchemaForView);
     final boolean uploadPinotSchema = uploadPinotSchema(realtimeTableSpec, pinotSchemaForView);
     if (!uploadPinotSchema) {
