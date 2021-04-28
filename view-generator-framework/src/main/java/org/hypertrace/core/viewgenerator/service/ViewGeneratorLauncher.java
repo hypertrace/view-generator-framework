@@ -36,7 +36,9 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
   }
 
   @Override
-  public StreamsBuilder buildTopology(Map<String, Object> properties, StreamsBuilder streamsBuilder,
+  public StreamsBuilder buildTopology(
+      Map<String, Object> properties,
+      StreamsBuilder streamsBuilder,
       Map<String, KStream<?, ?>> inputStreams) {
 
     Config jobConfig = getJobConfig(properties);
@@ -72,7 +74,8 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
       }
     }
 
-    inputStream.flatMapValues(viewMapper)
+    inputStream
+        .flatMapValues(viewMapper)
         .to(outputTopic, Produced.with(Serdes.String(), producerValueSerde));
     return streamsBuilder;
   }

@@ -17,8 +17,8 @@ public class ViewCreationSpec {
   private final String viewOutputSchemaClassName;
   private final Config viewGeneratorConfig;
 
-  public ViewCreationSpec(String viewName, String viewOutputSchemaClassName,
-                          Config viewGeneratorConfig) {
+  public ViewCreationSpec(
+      String viewName, String viewOutputSchemaClassName, Config viewGeneratorConfig) {
     this.viewName = viewName;
     this.viewOutputSchemaClassName = viewOutputSchemaClassName;
     this.viewGeneratorConfig = viewGeneratorConfig;
@@ -28,8 +28,7 @@ public class ViewCreationSpec {
     return new ViewCreationSpec(
         configs.getString(VIEW_NAME_CONFIG),
         configs.getString(VIEW_OUTPUT_SCHEMA_CLASS_CONFIG),
-        configs
-    );
+        configs);
   }
 
   public String getViewName() {
@@ -45,8 +44,8 @@ public class ViewCreationSpec {
   // implemented without other runtime dependencies.
   public Schema getOutputSchema() {
     try {
-      final Class<SpecificRecord> outputSchemaClass = (Class<SpecificRecord>) Class
-          .forName(this.viewOutputSchemaClassName);
+      final Class<SpecificRecord> outputSchemaClass =
+          (Class<SpecificRecord>) Class.forName(this.viewOutputSchemaClassName);
       final SpecificRecord schemaObject = outputSchemaClass.getDeclaredConstructor().newInstance();
       return schemaObject.getSchema();
     } catch (Exception e) {

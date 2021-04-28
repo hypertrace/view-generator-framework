@@ -39,8 +39,10 @@ public class PinotUtils {
 
   public static final String PINOT_CONFIGS_KEY = "pinot";
   public static final String PINOT_STREAM_CONFIGS_KEY = "pinot.streamConfigs";
-  public static final String STREAM_KAFKA_DECODER_CLASS_NAME_KEY = "stream.kafka.decoder.class.name";
-  public static final String STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY = "stream.kafka.decoder.prop.schema";
+  public static final String STREAM_KAFKA_DECODER_CLASS_NAME_KEY =
+      "stream.kafka.decoder.class.name";
+  public static final String STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY =
+      "stream.kafka.decoder.prop.schema";
   public static final String STREAM_KAFKA_CONSUMER_TYPE_KEY = "stream.kafka.consumer.type";
   public static final String SIMPLE_AVRO_MESSAGE_DECODER = "org.apache.pinot.core.realtime.stream.SimpleAvroMessageDecoder";
   private static final Logger LOGGER = LoggerFactory.getLogger(PinotUtils.class);
@@ -58,10 +60,11 @@ public class PinotUtils {
         ConfigUtils.getFlatMapConfig(spec.getViewGeneratorConfig(), PINOT_STREAM_CONFIGS_KEY));
     if (SIMPLE_AVRO_MESSAGE_DECODER
         .equals(streamConfigsMap.get(STREAM_KAFKA_DECODER_CLASS_NAME_KEY))) {
+
       // Try to infer output schema from ViewCreationSpec if not provided.
       if (!streamConfigsMap.containsKey(STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY)) {
-        streamConfigsMap
-            .put(STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY, spec.getOutputSchema().toString());
+        streamConfigsMap.put(
+            STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY, spec.getOutputSchema().toString());
       }
     }
     pinotTableSpec.setStreamConfigs(streamConfigsMap);
@@ -79,8 +82,14 @@ public class PinotUtils {
     List<String> dateTimeColumns = pinotTableSpec.getDateTimeColumns();
     Map<String, Object> columnsMaxLength = pinotTableSpec.getColumnsMaxLength();
     return convertAvroSchemaToPinotSchema(
-        avroSchema, schemaName, timeColumn, timeUnit, dimensionColumns, metricColumns,
-        dateTimeColumns, columnsMaxLength);
+        avroSchema,
+        schemaName,
+        timeColumn,
+        timeUnit,
+        dimensionColumns,
+        metricColumns,
+        dateTimeColumns,
+        columnsMaxLength);
   }
 
   public static boolean uploadPinotSchema(PinotTableSpec pinotTableSpec, final Schema schema) {
@@ -88,12 +97,12 @@ public class PinotUtils {
         schema);
   }
 
-  public static boolean uploadPinotSchema(String controllerHost, String controllerPort,
-      final Schema pinotSchemaFromAvroSchema) {
+  public static boolean uploadPinotSchema(
+      String controllerHost, String controllerPort, final Schema pinotSchemaFromAvroSchema) {
     File tmpFile = null;
     try {
-      tmpFile = File
-          .createTempFile(
+      tmpFile =
+          File.createTempFile(
               String.format("temp-schema-%s-", pinotSchemaFromAvroSchema.getSchemaName()), ".json");
       LOGGER.info("Created a temp schema file {}", tmpFile.getAbsolutePath());
       BufferedWriter writer = new BufferedWriter(new FileWriter(tmpFile));
@@ -112,9 +121,14 @@ public class PinotUtils {
     }
   }
 
-  public static Schema convertAvroSchemaToPinotSchema(org.apache.avro.Schema avroSchema,
-      String name, String timeColumn, TimeUnit timeUnit, List<String> dimensionColumns,
-      List<String> metricColumns, List<String> dateTimeColumns,
+  public static Schema convertAvroSchemaToPinotSchema(
+      org.apache.avro.Schema avroSchema,
+      String name,
+      String timeColumn,
+      TimeUnit timeUnit,
+      List<String> dimensionColumns,
+      List<String> metricColumns,
+      List<String> dateTimeColumns,
       Map<String, Object> columnsMaxLength) {
     Schema pinotSchema = new Schema();
     pinotSchema.setSchemaName(name);
@@ -129,15 +143,17 @@ public class PinotUtils {
         Field key = keyToValueField.getKey();
         Field value = keyToValueField.getValue();
         // only support single value for now
-        fieldSpec = new DimensionFieldSpec(key.name(),
-            AvroUtils.extractFieldDataType(key),
-            AvroUtils.isSingleValueField(key));
+        fieldSpec =
+            new DimensionFieldSpec(
+                key.name(), AvroUtils.extractFieldDataType(key), AvroUtils.isSingleValueField(key));
         // adds the key here first
         fieldSpecs.add(fieldSpec);
 
-        fieldSpec = new DimensionFieldSpec(value.name(),
-            AvroUtils.extractFieldDataType(value),
-            AvroUtils.isSingleValueField(value));
+        fieldSpec =
+            new DimensionFieldSpec(
+                value.name(),
+                AvroUtils.extractFieldDataType(value),
+                AvroUtils.isSingleValueField(value));
         fieldSpecs.add(fieldSpec);
       } else if (timeColumn.equals(field.name())) {
         validateDateTimeColumn(field, timeUnit);
@@ -155,8 +171,11 @@ public class PinotUtils {
             new DateTimeGranularitySpec(1, TimeUnit.MILLISECONDS).getGranularity());
         fieldSpecs.add(fieldSpec);
       } else if (dimensionColumns.contains(field.name())) {
-        fieldSpec = new DimensionFieldSpec(field.name(), AvroUtils.extractFieldDataType(field),
-            AvroUtils.isSingleValueField(field));
+        fieldSpec =
+            new DimensionFieldSpec(
+                field.name(),
+                AvroUtils.extractFieldDataType(field),
+                AvroUtils.isSingleValueField(field));
         fieldSpecs.add(fieldSpec);
       } else if (metricColumns.contains(field.name())) {
         fieldSpec = new MetricFieldSpec(field.name(), AvroUtils.extractFieldDataType(field));
@@ -194,7 +213,8 @@ public class PinotUtils {
   }
 
   private static void validateDateTimeColumn(Field field, TimeUnit timeUnit) {
-    // In the current model, we don't have the flexibility to support/define other types or granularity.
+    // In the current model, we don't have the flexibility to support/define other types or
+    // granularity.
     // So, we can support only LONG types and MILLISECOND granularity only
     // Till we fix the schema definition and parsing, these
     final DataType pinotDataType = AvroUtils.extractFieldDataType(field);
@@ -209,22 +229,24 @@ public class PinotUtils {
   public static Pair<Field, Field> splitMapField(Field mapField) {
     org.apache.avro.Schema keysFieldSchema =
         org.apache.avro.Schema.createArray(org.apache.avro.Schema.create(Type.STRING));
-    Field keysField = new Field(
-        mapField.name() + MAP_KEYS_SUFFIX,
-        keysFieldSchema,
-        mapField.doc(),
-        new ArrayList<String>(),
-        mapField.order());
+    Field keysField =
+        new Field(
+            mapField.name() + MAP_KEYS_SUFFIX,
+            keysFieldSchema,
+            mapField.doc(),
+            new ArrayList<String>(),
+            mapField.order());
 
     org.apache.avro.Schema valuesFieldSchema =
         org.apache.avro.Schema.createArray(mapField.schema().getValueType());
 
-    Field valuesField = new Field(
-        mapField.name() + MAP_VALUES_SUFFIX,
-        valuesFieldSchema,
-        mapField.doc(),
-        new ArrayList<>(),
-        mapField.order());
+    Field valuesField =
+        new Field(
+            mapField.name() + MAP_VALUES_SUFFIX,
+            valuesFieldSchema,
+            mapField.doc(),
+            new ArrayList<>(),
+            mapField.order());
 
     return new Pair<>(keysField, valuesField);
   }
@@ -268,12 +290,12 @@ public class PinotUtils {
         pinotTableSpec.getControllerPort(), tableConfig.toJsonString());
   }
 
-  public static boolean sendPinotTableCreationRequest(String controllerHost,
-      String controllerPort, final String tableConfig) {
+  public static boolean sendPinotTableCreationRequest(
+      String controllerHost, String controllerPort, final String tableConfig) {
     try {
       String controllerAddress = getControllerAddressForTableCreate(controllerHost, controllerPort);
-      LOGGER
-          .info("Trying to send table creation request {} to {}. ", tableConfig, controllerAddress);
+      LOGGER.info(
+          "Trying to send table creation request {} to {}. ", tableConfig, controllerAddress);
       String res = AbstractBaseAdminCommand.sendPostRequest(controllerAddress, tableConfig);
       LOGGER.info(res);
       return true;
@@ -283,9 +305,9 @@ public class PinotUtils {
     }
   }
 
-  private static String getControllerAddressForTableCreate(String controllerHost,
-      String controllerPort) {
-    return String
-        .format("http://%s:%s/%s", controllerHost, controllerPort, PINOT_TABLES_CREATE_SUFFIX);
+  private static String getControllerAddressForTableCreate(
+      String controllerHost, String controllerPort) {
+    return String.format(
+        "http://%s:%s/%s", controllerHost, controllerPort, PINOT_TABLES_CREATE_SUFFIX);
   }
 }

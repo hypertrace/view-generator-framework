@@ -86,16 +86,14 @@ public class ViewCreationSpecTest {
   public void testMissingViewOutputSchemaClassConfig() {
     assertThrows(
         ConfigException.Missing.class,
-        () -> createViewCreationSpecUsingConfig("missing_view_output_schema_class.conf")
-    );
+        () -> createViewCreationSpecUsingConfig("missing_view_output_schema_class.conf"));
   }
 
   @Test
   public void testMissingViewName() {
     assertThrows(
         ConfigException.Missing.class,
-        () -> createViewCreationSpecUsingConfig("missing_view_name.conf")
-    );
+        () -> createViewCreationSpecUsingConfig("missing_view_name.conf"));
   }
 
   private ViewCreationSpec createViewCreationSpecUsingConfig(String resourcePath) {

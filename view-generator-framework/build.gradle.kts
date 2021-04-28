@@ -6,7 +6,6 @@ plugins {
   id("org.hypertrace.jacoco-report-plugin")
 }
 
-
 sourceSets {
   test {
     java {
@@ -44,6 +43,5 @@ dependencies {
   testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.0")
 
   constraints {
-
   }
 }

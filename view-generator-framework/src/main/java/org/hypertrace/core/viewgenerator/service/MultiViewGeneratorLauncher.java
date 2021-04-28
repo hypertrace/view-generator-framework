@@ -30,7 +30,9 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
   }
 
   @Override
-  public StreamsBuilder buildTopology(Map<String, Object> properties, StreamsBuilder streamsBuilder,
+  public StreamsBuilder buildTopology(
+      Map<String, Object> properties,
+      StreamsBuilder streamsBuilder,
       Map<String, KStream<?, ?>> map) {
 
     List<String> viewGenNames = getViewGenName(properties);
@@ -95,10 +97,10 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
   }
 
   private Config getSubJobConfig(ConfigClient client, String jobName) {
-    return client.getConfig(jobName,
+    return client.getConfig(
+        jobName,
         ConfigUtils.getEnvironmentProperty("cluster.name"),
         ConfigUtils.getEnvironmentProperty("pod.name"),
-        ConfigUtils.getEnvironmentProperty("container.name")
-    );
+        ConfigUtils.getEnvironmentProperty("container.name"));
   }
 }
