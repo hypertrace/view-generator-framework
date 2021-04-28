@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
-import org.apache.commons.io.FileUtils;
 import org.apache.pinot.plugin.inputformat.avro.AvroUtils;
 import org.apache.pinot.spi.config.table.TableConfig;
 import org.apache.pinot.spi.config.table.TableType;
@@ -55,11 +54,11 @@ public class PinotUtils {
   private static final String PINOT_TABLES_CREATE_SUFFIX = "tables";
 
 
-  public static ViewCreationSpec.PinotTableSpec getPinotTableSpecFromViewGenerationSpec(
+  public static PinotTableSpec getPinotTableSpecFromViewGenerationSpec(
       ViewCreationSpec spec) {
-    final ViewCreationSpec.PinotTableSpec pinotTableSpec = ConfigBeanFactory
+    final PinotTableSpec pinotTableSpec = ConfigBeanFactory
         .create(spec.getViewGeneratorConfig().getConfig(PINOT_CONFIGS_KEY),
-            ViewCreationSpec.PinotTableSpec.class);
+            PinotTableSpec.class);
     final Config streamConfigs = spec.getViewGeneratorConfig().getConfig(PINOT_STREAM_CONFIGS_KEY);
     // ConfigBeanFactory will parse Map to nested structure. Try to reset streamConfigs as a flatten map.
     Map<String, Object> streamConfigsMap = new HashMap();
@@ -80,7 +79,7 @@ public class PinotUtils {
   }
 
   public static Schema createPinotSchemaForView(ViewCreationSpec spec) {
-    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(
+    final PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(
         spec);
     String schemaName = spec.getViewName();
     org.apache.avro.Schema avroSchema = spec.getOutputSchema();
@@ -96,7 +95,7 @@ public class PinotUtils {
   }
 
   public static boolean uploadPinotSchema(ViewCreationSpec spec, final Schema schema) {
-    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(
+    final PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(
         spec);
     return uploadPinotSchema(pinotTableSpec.getControllerHost(), pinotTableSpec.getControllerPort(),
         schema);
@@ -113,6 +112,7 @@ public class PinotUtils {
       BufferedWriter writer = new BufferedWriter(new FileWriter(tmpFile));
       writer.write(pinotSchemaFromAvroSchema.toPrettyJsonString());
       writer.flush();
+      writer.close();
       return new AddSchemaCommand().setControllerHost(controllerHost)
           .setControllerPort(controllerPort).setSchemaFilePath(tmpFile.getPath())
           .setExecute(true)
@@ -121,7 +121,7 @@ public class PinotUtils {
       LOGGER.error("Failed to upload Pinot schema.", e);
       return false;
     } finally {
-      FileUtils.deleteQuietly(tmpFile);
+      tmpFile.delete();
     }
   }
 
@@ -155,7 +155,8 @@ public class PinotUtils {
       } else if (timeColumn.equals(field.name())) {
         validateDateTimeColumn(field, timeUnit);
         fieldSpec = new DateTimeFieldSpec(field.name(), AvroUtils.extractFieldDataType(field),
-            new DateTimeFormatSpec(1, DateTimeTransformUnit.MILLISECONDS.name(), TimeFormat.EPOCH.name()).getFormat(),
+            new DateTimeFormatSpec(1, DateTimeTransformUnit.MILLISECONDS.name(),
+                TimeFormat.EPOCH.name()).getFormat(),
             new DateTimeGranularitySpec(1, timeUnit).getGranularity());
         fieldSpecs.add(fieldSpec);
       } else if (dateTimeColumns.contains(field.name())) {
@@ -212,12 +213,14 @@ public class PinotUtils {
     final DataType pinotDataType = AvroUtils.extractFieldDataType(field);
     if (pinotDataType != DataType.LONG) {
       throw new RuntimeException(
-          "Unsupported type for a date time column. column: " + field.name() + ". Expected: " + Type.LONG
+          "Unsupported type for a date time column. column: " + field.name() + ". Expected: "
+              + Type.LONG
               + ", Actual: " + field.schema().getType());
     }
     if (timeUnit != TimeUnit.MILLISECONDS) {
       throw new RuntimeException(
-          "Unsupported unit for a date time column. column: " + field.name() + ". Expected:" + TimeUnit.MILLISECONDS
+          "Unsupported unit for a date time column. column: " + field.name() + ". Expected:"
+              + TimeUnit.MILLISECONDS
               + ", Actual: " + timeUnit);
     }
   }
@@ -246,7 +249,7 @@ public class PinotUtils {
   }
 
   public static TableConfig createPinotTableConfig(ViewCreationSpec viewCreationSpec) {
-    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(
+    final PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(
         viewCreationSpec);
 
     return new TableConfigBuilder(TableType.REALTIME)
@@ -280,7 +283,7 @@ public class PinotUtils {
 
   public static boolean sendPinotTableCreationRequest(ViewCreationSpec spec,
       final TableConfig tableConfig) {
-    final ViewCreationSpec.PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(
+    final PinotTableSpec pinotTableSpec = getPinotTableSpecFromViewGenerationSpec(
         spec);
     return sendPinotTableCreationRequest(pinotTableSpec.getControllerHost(),
         pinotTableSpec.getControllerPort(), tableConfig.toJsonString());

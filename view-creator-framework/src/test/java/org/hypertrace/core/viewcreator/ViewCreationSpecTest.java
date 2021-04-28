@@ -7,6 +7,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.hypertrace.core.viewcreator.pinot.PinotTableSpec;
 import org.hypertrace.core.viewcreator.pinot.PinotUtils;
 import org.hypertrace.core.viewcreator.test.api.TestView;
 import org.junit.jupiter.api.Assertions;
@@ -22,7 +23,7 @@ public class ViewCreationSpecTest {
     Assertions.assertEquals(viewCreationSpec.getOutputSchema(), TestView.getClassSchema());
 
     // Test PinotTableSpec
-    final ViewCreationSpec.PinotTableSpec pinotTableSpec = PinotUtils
+    final PinotTableSpec pinotTableSpec = PinotUtils
         .getPinotTableSpecFromViewGenerationSpec(viewCreationSpec);
     Assertions.assertEquals(pinotTableSpec.getControllerHost(), "localhost");
     Assertions.assertEquals(pinotTableSpec.getControllerPort(), "9000");
@@ -72,25 +73,6 @@ public class ViewCreationSpecTest {
         .getPinotTableSpecFromViewGenerationSpec(viewCreationSpec).getStreamConfigs();
     Assertions.assertEquals(streamConfigs.get("stream.kafka.decoder.prop.schema"),
         TestView.getClassSchema().toString());
-  }
-
-  @Test
-  public void testKafkaSpecToString() {
-    ViewCreationSpec.KafkaSpec kafkaSpec = new ViewCreationSpec.KafkaSpec();
-
-    kafkaSpec.setBrokerAddress("broker:9000");
-    kafkaSpec.setTopicName("test-topic");
-    kafkaSpec.setPartitions(3);
-    kafkaSpec.setReplicationFactor(10);
-
-    Assertions.assertEquals("Topic Name: test-topic, Partitions: 3, ReplicationFactor: 10, BrokerAddress: broker:9000", kafkaSpec.toString());
-
-    kafkaSpec.setBrokerAddress("broker:8090");
-    kafkaSpec.setTopicName("test-topic-2");
-    kafkaSpec.setPartitions(4);
-    kafkaSpec.setReplicationFactor(7);
-
-    Assertions.assertEquals("Topic Name: test-topic-2, Partitions: 4, ReplicationFactor: 7, BrokerAddress: broker:8090", String.valueOf(kafkaSpec));
   }
 
   @Test

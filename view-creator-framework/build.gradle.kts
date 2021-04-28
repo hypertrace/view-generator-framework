@@ -27,14 +27,14 @@ dependencies {
   }
 
   implementation("org.apache.avro:avro:1.10.2")
-  implementation("org.apache.kafka:kafka-clients:5.5.0-ccs")
   implementation("org.apache.pinot:pinot-tools:0.7.1") {
     // All these third party libraries are not used in view creation workflow.
-    // They bring in lot of snyk vulnerabilities. so, excluding unused libs
+    // They bring in lot of vulnerabilities (snyk). so, excluding unused libs
     exclude("com.jayway.jsonpath", "json-path")
     exclude("commons-codec", "commons-codec")
     exclude("commons-collections", "commons-collections")
     exclude("commons-httpclient", "commons-httpclient")
+    exclude("commons-io", "commons-io")
     exclude("io.grpc", "grpc-netty-shaded")
     exclude("io.netty", "netty")
     exclude("javax.servlet", "javax.servlet-api")
@@ -64,6 +64,8 @@ dependencies {
     }
   }
 
+  compileOnly("org.projectlombok:lombok:1.18.20")
+  annotationProcessor("org.projectlombok:lombok:1.18.20")
   implementation("org.slf4j:slf4j-api:1.7.30")
   implementation("com.typesafe:config:1.4.1")
   runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.14.0")
