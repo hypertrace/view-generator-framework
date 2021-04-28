@@ -11,8 +11,8 @@ import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.To;
 import org.hypertrace.core.viewgenerator.JavaCodeBasedViewGenerator;
 
-public class ViewGenerationProcessTransformer<IN extends SpecificRecord, OUT extends GenericRecord> implements
-    Transformer<String, IN, OUT> {
+public class ViewGenerationProcessTransformer<IN extends SpecificRecord, OUT extends GenericRecord>
+    implements Transformer<String, IN, OUT> {
 
   private String viewgenClassName;
   private Class<OUT> viewClass;
@@ -46,15 +46,14 @@ public class ViewGenerationProcessTransformer<IN extends SpecificRecord, OUT ext
   }
 
   @Override
-  public void close() {
-  }
+  public void close() {}
 
   public Class<OUT> getViewClass() {
     return this.viewClass;
   }
 
   private JavaCodeBasedViewGenerator createViewGenerator() throws Exception {
-    return (JavaCodeBasedViewGenerator) Class.forName(this.viewgenClassName)
-        .getDeclaredConstructor().newInstance();
+    return (JavaCodeBasedViewGenerator)
+        Class.forName(this.viewgenClassName).getDeclaredConstructor().newInstance();
   }
 }

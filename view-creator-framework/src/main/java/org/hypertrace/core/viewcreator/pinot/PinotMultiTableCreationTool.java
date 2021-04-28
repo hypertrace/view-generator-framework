@@ -23,8 +23,7 @@ public class PinotMultiTableCreationTool implements TableCreationTool {
     viewsToCreate.forEach(
         viewName -> {
           ViewCreationSpec viewCreationSpec = parseViewCreationSpec(viewName);
-          PinotTableCreationTool tableCreationTool =
-              new PinotTableCreationTool(viewCreationSpec);
+          PinotTableCreationTool tableCreationTool = new PinotTableCreationTool(viewCreationSpec);
           tableCreationTool.create();
         });
   }

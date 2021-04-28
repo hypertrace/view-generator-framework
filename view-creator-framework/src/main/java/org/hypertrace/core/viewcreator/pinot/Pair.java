@@ -1,8 +1,6 @@
 package org.hypertrace.core.viewcreator.pinot;
 
-/**
- * Generic Pair class, to store a pair of data
- */
+/** Generic Pair class, to store a pair of data */
 public class Pair<K, V> {
   private final K key;
   private final V value;
@@ -19,5 +17,4 @@ public class Pair<K, V> {
   public V getValue() {
     return value;
   }
-
 }

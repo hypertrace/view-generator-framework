@@ -16,10 +16,11 @@ class ViewCreatorLauncherTest {
   public void testSingleTableCreationTool() throws Exception {
     Config configs = createConfig("sample-view-generation-spec.conf");
 
-    ConfigClient configClient =  Mockito.mock(ConfigClient.class);
+    ConfigClient configClient = Mockito.mock(ConfigClient.class);
     Mockito.when(configClient.getConfig()).thenReturn(configs);
 
-    TableCreationTool creationTool = new ViewCreatorLauncher(configClient).getTableCreationTool(configs);
+    TableCreationTool creationTool =
+        new ViewCreatorLauncher(configClient).getTableCreationTool(configs);
     Assertions.assertNotNull(creationTool);
     Assertions.assertTrue(creationTool instanceof PinotTableCreationTool);
   }
@@ -28,10 +29,11 @@ class ViewCreatorLauncherTest {
   public void testMultiTableCreationTool() throws Exception {
     Config configs = createConfig("all-views.conf");
 
-    ConfigClient configClient =  Mockito.mock(ConfigClient.class);
+    ConfigClient configClient = Mockito.mock(ConfigClient.class);
     Mockito.when(configClient.getConfig()).thenReturn(configs);
 
-    TableCreationTool creationTool = new ViewCreatorLauncher(configClient).getTableCreationTool(configs);
+    TableCreationTool creationTool =
+        new ViewCreatorLauncher(configClient).getTableCreationTool(configs);
     Assertions.assertNotNull(creationTool);
     Assertions.assertTrue(creationTool instanceof PinotMultiTableCreationTool);
   }
