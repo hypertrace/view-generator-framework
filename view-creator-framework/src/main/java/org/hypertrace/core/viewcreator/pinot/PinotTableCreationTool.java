@@ -1,7 +1,7 @@
 package org.hypertrace.core.viewcreator.pinot;
 
-import static org.hypertrace.core.viewcreator.pinot.PinotUtils.createPinotSchemaForView;
 import static org.hypertrace.core.viewcreator.pinot.PinotUtils.buildRealTimeTableConfig;
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.createPinotSchemaForView;
 import static org.hypertrace.core.viewcreator.pinot.PinotUtils.getPinotRealTimeTableSpec;
 import static org.hypertrace.core.viewcreator.pinot.PinotUtils.sendPinotTableCreationRequest;
 import static org.hypertrace.core.viewcreator.pinot.PinotUtils.uploadPinotSchema;

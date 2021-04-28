@@ -19,8 +19,7 @@ public class PinotTableSpec {
 
   private List<String> dimensionColumns;
   private List<String> metricColumns;
-  @Optional
-  private List<String> dateTimeColumns;
+  @Optional private List<String> dateTimeColumns;
 
   // Table index configs
   private List<String> invertedIndexColumns;
@@ -41,6 +40,5 @@ public class PinotTableSpec {
   private String brokerTenant;
   private String serverTenant;
 
-  public PinotTableSpec() {
-  }
+  public PinotTableSpec() {}
 }

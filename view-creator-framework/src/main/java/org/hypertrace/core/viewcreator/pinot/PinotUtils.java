@@ -20,7 +20,6 @@ import org.apache.pinot.spi.data.DateTimeFieldSpec;
 import org.apache.pinot.spi.data.DateTimeFieldSpec.TimeFormat;
 import org.apache.pinot.spi.data.DateTimeFormatSpec;
 import org.apache.pinot.spi.data.DateTimeFormatUnitSpec;
-import org.apache.pinot.spi.data.DateTimeFormatUnitSpec.DateTimeTransformUnit;
 import org.apache.pinot.spi.data.DateTimeGranularitySpec;
 import org.apache.pinot.spi.data.DimensionFieldSpec;
 import org.apache.pinot.spi.data.FieldSpec;
@@ -44,22 +43,25 @@ public class PinotUtils {
   public static final String STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY =
       "stream.kafka.decoder.prop.schema";
   public static final String STREAM_KAFKA_CONSUMER_TYPE_KEY = "stream.kafka.consumer.type";
-  public static final String SIMPLE_AVRO_MESSAGE_DECODER = "org.apache.pinot.core.realtime.stream.SimpleAvroMessageDecoder";
+  public static final String SIMPLE_AVRO_MESSAGE_DECODER =
+      "org.apache.pinot.core.realtime.stream.SimpleAvroMessageDecoder";
   private static final Logger LOGGER = LoggerFactory.getLogger(PinotUtils.class);
   private static final String MAP_KEYS_SUFFIX = "__KEYS";
   private static final String MAP_VALUES_SUFFIX = "__VALUES";
   private static final String PINOT_TABLES_CREATE_SUFFIX = "tables";
 
-
   public static PinotRealtimeTableSpec getPinotRealTimeTableSpec(ViewCreationSpec spec) {
-    final PinotRealtimeTableSpec pinotTableSpec = ConfigBeanFactory
-        .create(spec.getViewGeneratorConfig().getConfig(PINOT_CONFIGS_KEY),
+    final PinotRealtimeTableSpec pinotTableSpec =
+        ConfigBeanFactory.create(
+            spec.getViewGeneratorConfig().getConfig(PINOT_CONFIGS_KEY),
             PinotRealtimeTableSpec.class);
-    // ConfigBeanFactory will parse Map to nested structure. Try to reset streamConfigs as a flatten map.
-    Map<String, Object> streamConfigsMap = Maps.newHashMap(
-        ConfigUtils.getFlatMapConfig(spec.getViewGeneratorConfig(), PINOT_STREAM_CONFIGS_KEY));
-    if (SIMPLE_AVRO_MESSAGE_DECODER
-        .equals(streamConfigsMap.get(STREAM_KAFKA_DECODER_CLASS_NAME_KEY))) {
+    // ConfigBeanFactory will parse Map to nested structure. Try to reset streamConfigs as a flatten
+    // map.
+    Map<String, Object> streamConfigsMap =
+        Maps.newHashMap(
+            ConfigUtils.getFlatMapConfig(spec.getViewGeneratorConfig(), PINOT_STREAM_CONFIGS_KEY));
+    if (SIMPLE_AVRO_MESSAGE_DECODER.equals(
+        streamConfigsMap.get(STREAM_KAFKA_DECODER_CLASS_NAME_KEY))) {
 
       // Try to infer output schema from ViewCreationSpec if not provided.
       if (!streamConfigsMap.containsKey(STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY)) {
@@ -71,8 +73,8 @@ public class PinotUtils {
     return pinotTableSpec;
   }
 
-  public static Schema createPinotSchemaForView(ViewCreationSpec viewCreationSpec,
-      PinotTableSpec pinotTableSpec) {
+  public static Schema createPinotSchemaForView(
+      ViewCreationSpec viewCreationSpec, PinotTableSpec pinotTableSpec) {
     String schemaName = viewCreationSpec.getViewName();
     org.apache.avro.Schema avroSchema = viewCreationSpec.getOutputSchema();
     TimeUnit timeUnit = pinotTableSpec.getTimeUnit();
@@ -93,8 +95,8 @@ public class PinotUtils {
   }
 
   public static boolean uploadPinotSchema(PinotTableSpec pinotTableSpec, final Schema schema) {
-    return uploadPinotSchema(pinotTableSpec.getControllerHost(), pinotTableSpec.getControllerPort(),
-        schema);
+    return uploadPinotSchema(
+        pinotTableSpec.getControllerHost(), pinotTableSpec.getControllerPort(), schema);
   }
 
   public static boolean uploadPinotSchema(
@@ -109,8 +111,10 @@ public class PinotUtils {
       writer.write(pinotSchemaFromAvroSchema.toPrettyJsonString());
       writer.flush();
       writer.close();
-      return new AddSchemaCommand().setControllerHost(controllerHost)
-          .setControllerPort(controllerPort).setSchemaFilePath(tmpFile.getPath())
+      return new AddSchemaCommand()
+          .setControllerHost(controllerHost)
+          .setControllerPort(controllerPort)
+          .setSchemaFilePath(tmpFile.getPath())
           .setExecute(true)
           .execute();
     } catch (Exception e) {
@@ -157,18 +161,27 @@ public class PinotUtils {
         fieldSpecs.add(fieldSpec);
       } else if (timeColumn.equals(field.name())) {
         validateDateTimeColumn(field, timeUnit);
-        fieldSpec = new DateTimeFieldSpec(field.name(), AvroUtils.extractFieldDataType(field),
-            new DateTimeFormatSpec(1, timeUnit.name(),
-                TimeFormat.EPOCH.name()).getFormat(),
-            new DateTimeGranularitySpec(1, timeUnit).getGranularity());
+        fieldSpec =
+            new DateTimeFieldSpec(
+                field.name(),
+                AvroUtils.extractFieldDataType(field),
+                new DateTimeFormatSpec(1, timeUnit.name(), TimeFormat.EPOCH.name()).getFormat(),
+                new DateTimeGranularitySpec(1, timeUnit).getGranularity());
         fieldSpecs.add(fieldSpec);
       } else if (dateTimeColumns.contains(field.name())) {
         validateDateTimeColumn(field, TimeUnit.MILLISECONDS);
-        fieldSpec = new DateTimeFieldSpec(field.name(), AvroUtils.extractFieldDataType(field),
-            new DateTimeFormatSpec(1,
-                new DateTimeFormatUnitSpec(TimeUnit.MILLISECONDS.toString()).getDateTimeTransformUnit().name(),
-                TimeFormat.EPOCH.name()).getFormat(),
-            new DateTimeGranularitySpec(1, TimeUnit.MILLISECONDS).getGranularity());
+        fieldSpec =
+            new DateTimeFieldSpec(
+                field.name(),
+                AvroUtils.extractFieldDataType(field),
+                new DateTimeFormatSpec(
+                        1,
+                        new DateTimeFormatUnitSpec(TimeUnit.MILLISECONDS.toString())
+                            .getDateTimeTransformUnit()
+                            .name(),
+                        TimeFormat.EPOCH.name())
+                    .getFormat(),
+                new DateTimeGranularitySpec(1, TimeUnit.MILLISECONDS).getGranularity());
         fieldSpecs.add(fieldSpec);
       } else if (dimensionColumns.contains(field.name())) {
         fieldSpec =
@@ -220,9 +233,12 @@ public class PinotUtils {
     final DataType pinotDataType = AvroUtils.extractFieldDataType(field);
     if (pinotDataType != DataType.LONG) {
       throw new RuntimeException(
-          "Unsupported type for a date time column. column: " + field.name() + ". Expected: "
+          "Unsupported type for a date time column. column: "
+              + field.name()
+              + ". Expected: "
               + Type.LONG
-              + ", Actual: " + field.schema().getType());
+              + ", Actual: "
+              + field.schema().getType());
     }
   }
 
@@ -251,8 +267,8 @@ public class PinotUtils {
     return new Pair<>(keysField, valuesField);
   }
 
-  public static TableConfig buildRealTimeTableConfig(ViewCreationSpec viewCreationSpec,
-      PinotRealtimeTableSpec pinotTableSpec) {
+  public static TableConfig buildRealTimeTableConfig(
+      ViewCreationSpec viewCreationSpec, PinotRealtimeTableSpec pinotTableSpec) {
     return new TableConfigBuilder(TableType.REALTIME)
         .setTableName(pinotTableSpec.getTableName())
         .setLoadMode(pinotTableSpec.getLoadMode())
@@ -282,12 +298,13 @@ public class PinotUtils {
         || "LowLevel".equals(streamConfigs.get(STREAM_KAFKA_CONSUMER_TYPE_KEY));
   }
 
-  public static boolean sendPinotTableCreationRequest(ViewCreationSpec spec,
-      final TableConfig tableConfig) {
-    final PinotTableSpec pinotTableSpec = getPinotRealTimeTableSpec(
-        spec);
-    return sendPinotTableCreationRequest(pinotTableSpec.getControllerHost(),
-        pinotTableSpec.getControllerPort(), tableConfig.toJsonString());
+  public static boolean sendPinotTableCreationRequest(
+      ViewCreationSpec spec, final TableConfig tableConfig) {
+    final PinotTableSpec pinotTableSpec = getPinotRealTimeTableSpec(spec);
+    return sendPinotTableCreationRequest(
+        pinotTableSpec.getControllerHost(),
+        pinotTableSpec.getControllerPort(),
+        tableConfig.toJsonString());
   }
 
   public static boolean sendPinotTableCreationRequest(

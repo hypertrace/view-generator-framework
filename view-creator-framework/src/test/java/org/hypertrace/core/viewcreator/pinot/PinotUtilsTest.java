@@ -25,9 +25,14 @@ public class PinotUtilsTest {
 
   @Test
   public void testCreatePinotSchemaForView() {
-    final ViewCreationSpec viewCreationSpec = ViewCreationSpec.parse(ConfigFactory.parseFile(
-        new File(this.getClass().getClassLoader()
-            .getResource("sample-view-generation-spec.conf").getPath())));
+    final ViewCreationSpec viewCreationSpec =
+        ViewCreationSpec.parse(
+            ConfigFactory.parseFile(
+                new File(
+                    this.getClass()
+                        .getClassLoader()
+                        .getResource("sample-view-generation-spec.conf")
+                        .getPath())));
     final PinotRealtimeTableSpec pinotTableSpec = getPinotRealTimeTableSpec(viewCreationSpec);
 
     final Schema pinotSchemaForView = createPinotSchemaForView(viewCreationSpec, pinotTableSpec);
@@ -88,9 +93,14 @@ public class PinotUtilsTest {
 
   @Test
   public void testCreatePinotTableForView() {
-    final ViewCreationSpec viewCreationSpec = ViewCreationSpec.parse(ConfigFactory.parseFile(
-        new File(this.getClass().getClassLoader()
-            .getResource("sample-view-generation-spec.conf").getPath())));
+    final ViewCreationSpec viewCreationSpec =
+        ViewCreationSpec.parse(
+            ConfigFactory.parseFile(
+                new File(
+                    this.getClass()
+                        .getClassLoader()
+                        .getResource("sample-view-generation-spec.conf")
+                        .getPath())));
     final PinotRealtimeTableSpec pinotTableSpec = getPinotRealTimeTableSpec(viewCreationSpec);
     final TableConfig tableConfig = buildRealTimeTableConfig(viewCreationSpec, pinotTableSpec);
     LOGGER.info("Pinot Table Config for View: {}", tableConfig);
