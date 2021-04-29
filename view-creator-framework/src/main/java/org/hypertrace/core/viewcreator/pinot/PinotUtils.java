@@ -13,9 +13,12 @@ import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREA
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_DECODER_CLASS_NAME_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY;
 
+import com.google.common.collect.Maps;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigBeanFactory;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigUtil;
+import com.typesafe.config.ConfigValue;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -23,12 +26,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.apache.pinot.plugin.inputformat.avro.AvroUtils;
 import org.apache.pinot.spi.config.table.TableConfig;
+import org.apache.pinot.spi.config.table.TableTaskConfig;
 import org.apache.pinot.spi.config.table.TableType;
 import org.apache.pinot.spi.data.DateTimeFieldSpec;
 import org.apache.pinot.spi.data.DateTimeFieldSpec.TimeFormat;
@@ -49,6 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PinotUtils {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(PinotUtils.class);
 
   public static PinotTableSpec getPinotRealtimeTableSpec(ViewCreationSpec creationSpec) {
@@ -299,7 +306,9 @@ public class PinotUtils {
             .setRetentionTimeUnit(pinotTableSpec.getRetentionTimeUnit())
             // Tenant configs
             .setBrokerTenant(pinotTableSpec.getBrokerTenant())
-            .setServerTenant(pinotTableSpec.getServerTenant());
+            .setServerTenant(pinotTableSpec.getServerTenant())
+            // Task configurations
+            .setTaskConfig(toTableTaskConfig(pinotTableSpec.getTaskConfigs()));
 
     if (tableType == TableType.REALTIME) {
       // Stream configs only for REALTIME
@@ -308,6 +317,19 @@ public class PinotUtils {
           .setStreamConfigs((Map) pinotTableSpec.getStreamConfigs());
     }
     return tableConfigBuilder.build();
+  }
+
+  private static TableTaskConfig toTableTaskConfig(@Nullable Config allTasksConfigs) {
+    if (allTasksConfigs == null) {
+      return null;
+    }
+    Map<String, Map<String, String>> taskTypeConfigsMap = Maps.newHashMap();
+    for (Entry<String, ConfigValue> entry : allTasksConfigs.entrySet()) {
+      String taskType = ConfigUtil.splitPath(entry.getKey()).get(0);
+      Map<String, String> taskConfig = ConfigUtils.getFlatMapConfig(allTasksConfigs, taskType);
+      taskTypeConfigsMap.put(taskType, taskConfig);
+    }
+    return new TableTaskConfig(taskTypeConfigsMap);
   }
 
   private static boolean isLLC(Map<String, Object> streamConfigs) {

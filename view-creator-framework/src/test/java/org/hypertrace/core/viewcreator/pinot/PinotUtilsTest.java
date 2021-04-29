@@ -143,6 +143,13 @@ public class PinotUtilsTest {
         "BalanceNumSegmentAssignmentStrategy",
         tableConfig.getValidationConfig().getSegmentAssignmentStrategy());
 
+    // Verify task configs
+    final Map<String, String> taskConfig =
+        tableConfig.getTaskConfig().getConfigsForTaskType("RealtimeToOfflineSegmentsTask");
+    assertEquals(1, tableConfig.getTaskConfig().getTaskTypeConfigsMap().size());
+    assertEquals("6h", taskConfig.get("bucketTimePeriod"));
+    assertEquals("12h", taskConfig.get("bufferTimePeriod"));
+
     // TODO: This is deprecated
     assertEquals("creation_time_millis", tableConfig.getValidationConfig().getTimeColumnName());
     // TODO: This is deprecated
