@@ -15,6 +15,7 @@ import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREA
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigBeanFactory;
+import com.typesafe.config.ConfigFactory;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -53,8 +54,7 @@ public class PinotUtils {
   public static PinotTableSpec getPinotRealtimeTableSpec(ViewCreationSpec creationSpec) {
     final Config viewCreatorConfig = creationSpec.getViewCreatorConfig();
     final Config pinotRealtimeConfig =
-        viewCreatorConfig
-            .getConfig(PINOT_REALTIME_CONFIGS_KEY)
+        getOptionalConfig(viewCreatorConfig, PINOT_REALTIME_CONFIGS_KEY)
             .withFallback(viewCreatorConfig.getConfig(PINOT_CONFIGS_KEY));
     final PinotTableSpec pinotTableSpec =
         ConfigBeanFactory.create(pinotRealtimeConfig, PinotTableSpec.class);
@@ -80,8 +80,7 @@ public class PinotUtils {
   public static PinotTableSpec getPinotOfflineTableSpec(ViewCreationSpec creationSpec) {
     final Config viewCreatorConfig = creationSpec.getViewCreatorConfig();
     final Config pinotOfflineConfig =
-        viewCreatorConfig
-            .getConfig(PINOT_OFFLINE_CONFIGS_KEY)
+        getOptionalConfig(viewCreatorConfig, PINOT_OFFLINE_CONFIGS_KEY)
             .withFallback(viewCreatorConfig.getConfig(PINOT_CONFIGS_KEY));
     return ConfigBeanFactory.create(pinotOfflineConfig, PinotTableSpec.class);
   }
@@ -342,5 +341,13 @@ public class PinotUtils {
   private static String getControllerAddressForTableCreate(
       String controllerHost, String controllerPort) {
     return String.format("http://%s:%s/%s", controllerHost, controllerPort, PINOT_REST_URI_TABLES);
+  }
+
+  private static Config getOptionalConfig(Config config, String key) {
+    if (config.hasPath(key)) {
+      return config.getConfig(key);
+    } else {
+      return ConfigFactory.empty();
+    }
   }
 }
