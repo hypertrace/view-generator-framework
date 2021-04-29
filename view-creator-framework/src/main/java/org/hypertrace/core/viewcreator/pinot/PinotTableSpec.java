@@ -1,5 +1,6 @@
 package org.hypertrace.core.viewcreator.pinot;
 
+import com.typesafe.config.Config;
 import com.typesafe.config.Optional;
 import java.util.Collections;
 import java.util.List;
@@ -43,4 +44,7 @@ public class PinotTableSpec {
   // Tenants config
   private String brokerTenant;
   private String serverTenant;
+
+  // Task configs
+  @Optional private Config taskConfigs;
 }
