@@ -3,8 +3,13 @@ package org.hypertrace.core.viewcreator.pinot;
 import static org.apache.pinot.spi.config.table.TableType.OFFLINE;
 import static org.apache.pinot.spi.config.table.TableType.REALTIME;
 import static org.apache.pinot.spi.data.FieldSpec.DEFAULT_DIMENSION_NULL_VALUE_OF_STRING;
-import static org.hypertrace.core.viewcreator.pinot.PinotUtils.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.buildPinotTableConfig;
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.createPinotSchema;
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.getPinotOfflineTableSpec;
+import static org.hypertrace.core.viewcreator.pinot.PinotUtils.getPinotRealtimeTableSpec;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typesafe.config.ConfigFactory;
 import java.io.File;
@@ -12,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.apache.pinot.spi.config.table.TableConfig;
+import org.apache.pinot.spi.config.table.ingestion.TransformConfig;
 import org.apache.pinot.spi.data.DateTimeFieldSpec;
 import org.apache.pinot.spi.data.DateTimeFormatSpec;
 import org.apache.pinot.spi.data.FieldSpec.DataType;
@@ -134,6 +140,7 @@ public class PinotUtilsTest {
     assertEquals(
         List.of("properties__VALUES"), tableConfig.getIndexingConfig().getNoDictionaryColumns());
     assertEquals(List.of("id_sha"), tableConfig.getIndexingConfig().getBloomFilterColumns());
+    assertEquals(false, tableConfig.getIndexingConfig().isAggregateMetrics());
 
     // Verify segment configs
     assertEquals(1, tableConfig.getValidationConfig().getReplicationNumber());
@@ -154,6 +161,10 @@ public class PinotUtilsTest {
     assertEquals("creation_time_millis", tableConfig.getValidationConfig().getTimeColumnName());
     // TODO: This is deprecated
     assertEquals(TimeUnit.MILLISECONDS, tableConfig.getValidationConfig().getTimeType());
+
+    TransformConfig transformConfig = tableConfig.getIngestionConfig().getTransformConfigs().get(0);
+    assertEquals("bucket_start_time_millis", transformConfig.getColumnName());
+    assertEquals("round(start_time_millis, 3600000)", transformConfig.getTransformFunction());
   }
 
   @Test

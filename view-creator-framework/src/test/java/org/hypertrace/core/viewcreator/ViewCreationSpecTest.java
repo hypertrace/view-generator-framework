@@ -1,5 +1,6 @@
 package org.hypertrace.core.viewcreator;
 
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_TRANSFORM_COLUMN_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -76,6 +77,10 @@ public class ViewCreationSpecTest {
     assertEquals(streamConfigs.get("realtime.segment.flush.threshold.size"), "500000");
     assertEquals(streamConfigs.get("realtime.segment.flush.threshold.time"), "3600000");
     assertEquals(streamConfigs.get("stream.kafka.consumer.prop.auto.offset.reset"), "largest");
+
+    Config transformConfig = pinotTableSpec.getTransformConfigs().get(0);
+    assertEquals(transformConfig.getString(PINOT_TRANSFORM_COLUMN_NAME),
+        "bucket_start_time_millis");
   }
 
   @Test

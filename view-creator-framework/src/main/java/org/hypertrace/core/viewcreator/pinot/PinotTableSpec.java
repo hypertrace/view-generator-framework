@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.Data;
+import org.apache.pinot.spi.config.table.ingestion.IngestionConfig;
+import org.apache.pinot.spi.config.table.ingestion.TransformConfig;
 
 @Data
 public class PinotTableSpec {
@@ -29,6 +31,7 @@ public class PinotTableSpec {
   private List<String> bloomFilterColumns;
   private List<String> rangeIndexColumns;
   private Map<String, Object> columnsMaxLength;
+  @Optional private boolean aggregateMetrics = false;
 
   // Stream configs
   @Optional private Map<String, Object> streamConfigs;
@@ -47,4 +50,8 @@ public class PinotTableSpec {
 
   // Task configs
   @Optional private Config taskConfigs;
+
+  // Task configs
+  @Optional private List<Config> transformConfigs;
+
 }
