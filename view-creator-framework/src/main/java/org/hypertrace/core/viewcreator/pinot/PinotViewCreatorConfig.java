@@ -14,6 +14,12 @@ public class PinotViewCreatorConfig {
   public static final String PINOT_CONFIGS_KEY = "pinot";
 
   /////////////
+  // Pinot ingestion transform configurations
+  /////////////
+  public static final String PINOT_TRANSFORM_COLUMN_NAME = "columnName";
+  public static final String PINOT_TRANSFORM_COLUMN_FUNCTION = "transformFunction";
+
+  /////////////
   // Pinot REALTIME table configurations
   /////////////
   public static final String PINOT_REALTIME_CONFIGS_KEY = "pinotRealtime";

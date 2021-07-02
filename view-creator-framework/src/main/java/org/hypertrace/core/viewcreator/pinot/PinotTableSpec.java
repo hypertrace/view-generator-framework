@@ -29,6 +29,7 @@ public class PinotTableSpec {
   private List<String> bloomFilterColumns;
   private List<String> rangeIndexColumns;
   private Map<String, Object> columnsMaxLength;
+  @Optional private boolean aggregateMetrics = false;
 
   // Stream configs
   @Optional private Map<String, Object> streamConfigs;
@@ -47,4 +48,7 @@ public class PinotTableSpec {
 
   // Task configs
   @Optional private Config taskConfigs;
+
+  // Task configs
+  @Optional private List<Config> transformConfigs;
 }

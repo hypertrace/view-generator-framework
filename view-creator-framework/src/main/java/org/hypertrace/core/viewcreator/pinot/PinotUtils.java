@@ -8,6 +8,8 @@ import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_SCHEMA_MAP_KEYS_SUFFIX;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_SCHEMA_MAP_VALUES_SUFFIX;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_STREAM_CONFIGS_KEY;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_TRANSFORM_COLUMN_FUNCTION;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_TRANSFORM_COLUMN_NAME;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.SIMPLE_AVRO_MESSAGE_DECODER;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_CONSUMER_TYPE_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_DECODER_CLASS_NAME_KEY;
@@ -36,6 +38,8 @@ import org.apache.pinot.plugin.inputformat.avro.AvroUtils;
 import org.apache.pinot.spi.config.table.TableConfig;
 import org.apache.pinot.spi.config.table.TableTaskConfig;
 import org.apache.pinot.spi.config.table.TableType;
+import org.apache.pinot.spi.config.table.ingestion.IngestionConfig;
+import org.apache.pinot.spi.config.table.ingestion.TransformConfig;
 import org.apache.pinot.spi.data.DateTimeFieldSpec;
 import org.apache.pinot.spi.data.DateTimeFieldSpec.TimeFormat;
 import org.apache.pinot.spi.data.DateTimeFormatSpec;
@@ -308,7 +312,9 @@ public class PinotUtils {
             .setBrokerTenant(pinotTableSpec.getBrokerTenant())
             .setServerTenant(pinotTableSpec.getServerTenant())
             // Task configurations
-            .setTaskConfig(toTableTaskConfig(pinotTableSpec.getTaskConfigs()));
+            .setTaskConfig(toTableTaskConfig(pinotTableSpec.getTaskConfigs()))
+            // ingestion configurations
+            .setIngestionConfig(getTableIngestionConfig(pinotTableSpec));
 
     if (tableType == TableType.REALTIME) {
       // Stream configs only for REALTIME
@@ -316,7 +322,27 @@ public class PinotUtils {
           .setLLC(isLLC(pinotTableSpec.getStreamConfigs()))
           .setStreamConfigs((Map) pinotTableSpec.getStreamConfigs());
     }
-    return tableConfigBuilder.build();
+
+    // Unable to set few configs via building hence setting them later directly
+    final TableConfig tableConfig = tableConfigBuilder.build();
+    tableConfig.getIndexingConfig().setAggregateMetrics(pinotTableSpec.isAggregateMetrics());
+
+    return tableConfig;
+  }
+
+  private static IngestionConfig getTableIngestionConfig(@Nullable PinotTableSpec tableSpec) {
+    List<Config> transformConfigs = tableSpec.getTransformConfigs();
+    List<TransformConfig> tableTransformConfigs = null;
+    if (transformConfigs != null) {
+      tableTransformConfigs = new ArrayList<>();
+      for (Config transformConfig : transformConfigs) {
+        tableTransformConfigs.add(
+            new TransformConfig(
+                transformConfig.getString(PINOT_TRANSFORM_COLUMN_NAME),
+                transformConfig.getString(PINOT_TRANSFORM_COLUMN_FUNCTION)));
+      }
+    }
+    return new IngestionConfig(null, null, null, tableTransformConfigs);
   }
 
   private static TableTaskConfig toTableTaskConfig(@Nullable Config allTasksConfigs) {
