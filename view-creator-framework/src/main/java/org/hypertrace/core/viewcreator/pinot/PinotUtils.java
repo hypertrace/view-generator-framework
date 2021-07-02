@@ -200,11 +200,11 @@ public class PinotUtils {
                 field.name(),
                 AvroUtils.extractFieldDataType(field),
                 new DateTimeFormatSpec(
-                    1,
-                    new DateTimeFormatUnitSpec(TimeUnit.MILLISECONDS.toString())
-                        .getDateTimeTransformUnit()
-                        .name(),
-                    TimeFormat.EPOCH.name())
+                        1,
+                        new DateTimeFormatUnitSpec(TimeUnit.MILLISECONDS.toString())
+                            .getDateTimeTransformUnit()
+                            .name(),
+                        TimeFormat.EPOCH.name())
                     .getFormat(),
                 new DateTimeGranularitySpec(1, TimeUnit.MILLISECONDS).getGranularity());
         fieldSpecs.add(fieldSpec);
@@ -337,7 +337,8 @@ public class PinotUtils {
       tableTransformConfigs = new ArrayList<>();
       for (Config transformConfig : transformConfigs) {
         tableTransformConfigs.add(
-            new TransformConfig(transformConfig.getString(PINOT_TRANSFORM_COLUMN_NAME),
+            new TransformConfig(
+                transformConfig.getString(PINOT_TRANSFORM_COLUMN_NAME),
                 transformConfig.getString(PINOT_TRANSFORM_COLUMN_FUNCTION)));
       }
     }

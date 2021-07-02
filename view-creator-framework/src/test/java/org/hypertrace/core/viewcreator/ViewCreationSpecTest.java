@@ -79,8 +79,8 @@ public class ViewCreationSpecTest {
     assertEquals(streamConfigs.get("stream.kafka.consumer.prop.auto.offset.reset"), "largest");
 
     Config transformConfig = pinotTableSpec.getTransformConfigs().get(0);
-    assertEquals(transformConfig.getString(PINOT_TRANSFORM_COLUMN_NAME),
-        "bucket_start_time_millis");
+    assertEquals(
+        transformConfig.getString(PINOT_TRANSFORM_COLUMN_NAME), "bucket_start_time_millis");
   }
 
   @Test
