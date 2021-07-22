@@ -379,9 +379,7 @@ public class PinotUtils {
         tableConfig.toJsonString(),
         tableConfig.getTableName());
   }
-  /**
-   * Utility for sending Pinot Table Creation/Update request.
-   **/
+  /** Utility for sending Pinot Table Creation/Update request. */
   public static boolean sendPinotTableCreationRequest(
       String controllerHost,
       String controllerPort,
@@ -391,10 +389,10 @@ public class PinotUtils {
     LOGGER.info("Trying to send table creation request {} to {}. ", tableConfig, controllerAddress);
     int responseCode = sendRequest("POST", controllerAddress, tableConfig);
     /*
-        If the response code is HTTP_CONFLICT (409), this means there is already a table in Pinot, hence now we are attempting to update the table.
-        Note: Pinot upserts (update/create) REALTIME tables in POST calls however only creates OFFLINE tables in POST calls.
-        Hence we need to check for conflict to trigger explicit update for OFFLINE table.
-     */
+       If the response code is HTTP_CONFLICT (409), this means there is already a table in Pinot, hence now we are attempting to update the table.
+       Note: Pinot upserts (update/create) REALTIME tables in POST calls however only creates OFFLINE tables in POST calls.
+       Hence we need to check for conflict to trigger explicit update for OFFLINE table.
+    */
     if (responseCode == HTTP_CONFLICT) {
       LOGGER.info("Trying to update table with request {} to {}. ", tableConfig, controllerAddress);
       sendRequest(
