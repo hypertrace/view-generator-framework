@@ -21,9 +21,17 @@ import com.typesafe.config.ConfigBeanFactory;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigUtil;
 import com.typesafe.config.ConfigValue;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,6 +42,7 @@ import javax.annotation.Nullable;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
+import org.apache.http.HttpException;
 import org.apache.pinot.plugin.inputformat.avro.AvroUtils;
 import org.apache.pinot.spi.config.table.TableConfig;
 import org.apache.pinot.spi.config.table.TableTaskConfig;
@@ -51,7 +60,6 @@ import org.apache.pinot.spi.data.FieldSpec.DataType;
 import org.apache.pinot.spi.data.MetricFieldSpec;
 import org.apache.pinot.spi.data.Schema;
 import org.apache.pinot.spi.utils.builder.TableConfigBuilder;
-import org.apache.pinot.tools.admin.command.AbstractBaseAdminCommand;
 import org.apache.pinot.tools.admin.command.AddSchemaCommand;
 import org.hypertrace.core.serviceframework.config.ConfigUtils;
 import org.hypertrace.core.viewcreator.ViewCreationSpec;
@@ -368,27 +376,88 @@ public class PinotUtils {
     return sendPinotTableCreationRequest(
         pinotTableSpec.getControllerHost(),
         pinotTableSpec.getControllerPort(),
-        tableConfig.toJsonString());
+        tableConfig.toJsonString(),
+        tableConfig.getTableName());
   }
 
   public static boolean sendPinotTableCreationRequest(
-      String controllerHost, String controllerPort, final String tableConfig) {
+      String controllerHost,
+      String controllerPort,
+      final String tableConfig,
+      final String tableName) {
     try {
       String controllerAddress = getControllerAddressForTableCreate(controllerHost, controllerPort);
       LOGGER.info(
           "Trying to send table creation request {} to {}. ", tableConfig, controllerAddress);
-      String res = AbstractBaseAdminCommand.sendPostRequest(controllerAddress, tableConfig);
+      String res = sendRequest("POST", controllerAddress, tableConfig);
       LOGGER.info(res);
       return true;
+    } catch (HttpException http_e) {
+      try {
+        String controllerAddress =
+            getControllerAddressForTableUpdate(controllerHost, controllerPort, tableName);
+        LOGGER.info(
+            "Trying to send table update request {} to {}. ", tableConfig, controllerAddress);
+        String res = sendRequest("PUT", controllerAddress, tableConfig);
+        LOGGER.info(res);
+        return true;
+      } catch (Exception e) {
+        LOGGER.error("Failed to update Pinot table.", e);
+        return false;
+      }
     } catch (Exception e) {
       LOGGER.error("Failed to create Pinot table.", e);
       return false;
     }
   }
 
+  public static String sendRequest(String requestMethod, String urlString, String payload)
+      throws IOException, HttpException {
+    final URL url = new URL(urlString);
+    final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+    conn.setDoOutput(true);
+    conn.setRequestMethod(requestMethod);
+    if (payload != null) {
+      final BufferedWriter writer =
+          new BufferedWriter(
+              new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8));
+      writer.write(payload, 0, payload.length());
+      writer.flush();
+    }
+
+    try {
+      if (conn.getResponseCode() >= 400) // error
+      {
+        throw new HttpException();
+      }
+      return readInputStream(conn.getInputStream());
+    } catch (HttpException e) {
+      throw new HttpException();
+    } catch (Exception e) {
+      return readInputStream(conn.getErrorStream());
+    }
+  }
+
+  private static String readInputStream(InputStream inputStream) throws IOException {
+    final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+    final StringBuilder sb = new StringBuilder();
+    String line;
+    while ((line = reader.readLine()) != null) {
+      sb.append(line);
+    }
+    return sb.toString();
+  }
+
   private static String getControllerAddressForTableCreate(
       String controllerHost, String controllerPort) {
     return String.format("http://%s:%s/%s", controllerHost, controllerPort, PINOT_REST_URI_TABLES);
+  }
+
+  private static String getControllerAddressForTableUpdate(
+      String controllerHost, String controllerPort, String tableName) {
+    return String.format(
+        "http://%s:%s/%s/%s", controllerHost, controllerPort, PINOT_REST_URI_TABLES, tableName);
   }
 
   private static Config getOptionalConfig(Config config, String key) {
