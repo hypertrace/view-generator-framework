@@ -415,7 +415,7 @@ public class PinotUtils {
         LOGGER.warn(
             "Pinot request failed. Response code: "
                 + conn.getResponseCode()
-                + "Response: "
+                + " Response: "
                 + conn.getResponseMessage());
         return responseCode;
       }
