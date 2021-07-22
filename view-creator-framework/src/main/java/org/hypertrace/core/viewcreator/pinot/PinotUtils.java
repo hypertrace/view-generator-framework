@@ -1,6 +1,8 @@
 package org.hypertrace.core.viewcreator.pinot;
 
 import static com.google.common.collect.Maps.newHashMap;
+import static java.net.HttpURLConnection.HTTP_CONFLICT;
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_CONFIGS_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_OFFLINE_CONFIGS_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_REALTIME_CONFIGS_KEY;
@@ -21,9 +23,16 @@ import com.typesafe.config.ConfigBeanFactory;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigUtil;
 import com.typesafe.config.ConfigValue;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -51,7 +60,6 @@ import org.apache.pinot.spi.data.FieldSpec.DataType;
 import org.apache.pinot.spi.data.MetricFieldSpec;
 import org.apache.pinot.spi.data.Schema;
 import org.apache.pinot.spi.utils.builder.TableConfigBuilder;
-import org.apache.pinot.tools.admin.command.AbstractBaseAdminCommand;
 import org.apache.pinot.tools.admin.command.AddSchemaCommand;
 import org.hypertrace.core.serviceframework.config.ConfigUtils;
 import org.hypertrace.core.viewcreator.ViewCreationSpec;
@@ -368,27 +376,110 @@ public class PinotUtils {
     return sendPinotTableCreationRequest(
         pinotTableSpec.getControllerHost(),
         pinotTableSpec.getControllerPort(),
-        tableConfig.toJsonString());
+        tableConfig.toJsonString(),
+        tableConfig.getTableName());
   }
-
+  /** Utility for sending Pinot Table Creation/Update request. */
   public static boolean sendPinotTableCreationRequest(
-      String controllerHost, String controllerPort, final String tableConfig) {
-    try {
-      String controllerAddress = getControllerAddressForTableCreate(controllerHost, controllerPort);
-      LOGGER.info(
-          "Trying to send table creation request {} to {}. ", tableConfig, controllerAddress);
-      String res = AbstractBaseAdminCommand.sendPostRequest(controllerAddress, tableConfig);
-      LOGGER.info(res);
-      return true;
-    } catch (Exception e) {
-      LOGGER.error("Failed to create Pinot table.", e);
-      return false;
+      String controllerHost,
+      String controllerPort,
+      final String tableConfig,
+      final String tableName) {
+    String controllerAddress = getControllerAddressForTableCreate(controllerHost, controllerPort);
+    LOGGER.info("Trying to send table creation request {} to {}. ", tableConfig, controllerAddress);
+    int responseCode = sendRequest("POST", controllerAddress, tableConfig);
+    /*
+       If the response code is HTTP_CONFLICT (409), this means there is already a table in Pinot, hence now we are attempting to update the table.
+       Note: Pinot upserts (update/create) REALTIME tables in POST calls however only creates OFFLINE tables in POST calls.
+       Hence we need to check for conflict to trigger explicit update for OFFLINE table.
+    */
+    if (responseCode == HTTP_CONFLICT) {
+      LOGGER.info("Trying to update table with request {} to {}. ", tableConfig, controllerAddress);
+      sendRequest(
+          "PUT",
+          getControllerAddressForTableUpdate(controllerHost, controllerPort, tableName),
+          tableConfig);
     }
+    return true;
   }
 
+  /**
+   * @param requestMethod: Type of request (PUT/GET/POST/DELTE)
+   * @param urlString: Api endpoint
+   * @param payload: Payload
+   * @return Status Code
+   */
+  public static int sendRequest(String requestMethod, String urlString, String payload) {
+    HttpURLConnection conn = null;
+    try {
+      final URL url = new URL(urlString);
+
+      conn = (HttpURLConnection) url.openConnection();
+      conn.setDoOutput(true);
+      conn.setRequestMethod(requestMethod);
+
+      final BufferedWriter writer =
+          new BufferedWriter(
+              new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8));
+      writer.write(payload, 0, payload.length());
+      writer.flush();
+
+      final int responseCode = conn.getResponseCode();
+      if (responseCode != HTTP_OK) {
+        LOGGER.warn(
+            "Pinot request failed. Response code: "
+                + conn.getResponseCode()
+                + " Response: "
+                + readInputStream(conn.getErrorStream()));
+        return responseCode;
+      }
+      String successResponse = readInputStream(conn.getInputStream());
+      LOGGER.info("Pinot request successful. Response: {}", successResponse);
+    } catch (Exception e) {
+      String errorResponse = readInputStream(conn.getErrorStream());
+      throw new RuntimeException("Error while sending request to pinot: " + errorResponse, e);
+    }
+    return HTTP_OK;
+  }
+  /** Utility for reading from an InputStream and converting it to String */
+  private static String readInputStream(InputStream inputStream) {
+    final StringBuilder sb = new StringBuilder();
+    try {
+      final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+      String line;
+      while ((line = reader.readLine()) != null) {
+        sb.append(line);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Exception while reading the stream", e);
+    }
+
+    return sb.toString();
+  }
+
+  /**
+   * Utility for preparing the api-endpoint for Pinot Table Creation
+   *
+   * @param controllerHost : hostname
+   * @param controllerPort : port
+   * @return
+   */
   private static String getControllerAddressForTableCreate(
       String controllerHost, String controllerPort) {
     return String.format("http://%s:%s/%s", controllerHost, controllerPort, PINOT_REST_URI_TABLES);
+  }
+  /**
+   * Utility for preparing the api-endpoint for Pinot Table Update
+   *
+   * @param controllerHost : hostname
+   * @param controllerPort : port
+   * @param tableName: Name of the table to be updated
+   * @return
+   */
+  private static String getControllerAddressForTableUpdate(
+      String controllerHost, String controllerPort, String tableName) {
+    return String.format(
+        "http://%s:%s/%s/%s", controllerHost, controllerPort, PINOT_REST_URI_TABLES, tableName);
   }
 
   private static Config getOptionalConfig(Config config, String key) {
