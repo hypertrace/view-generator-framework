@@ -1,6 +1,8 @@
 package org.hypertrace.core.viewcreator.pinot;
 
 import static com.google.common.collect.Maps.newHashMap;
+import static java.net.HttpURLConnection.HTTP_CONFLICT;
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_CONFIGS_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_OFFLINE_CONFIGS_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_REALTIME_CONFIGS_KEY;
@@ -377,7 +379,9 @@ public class PinotUtils {
         tableConfig.toJsonString(),
         tableConfig.getTableName());
   }
-
+  /**
+   * Utility for sending Pinot Table Creation/Update request.
+   **/
   public static boolean sendPinotTableCreationRequest(
       String controllerHost,
       String controllerPort,
@@ -386,7 +390,12 @@ public class PinotUtils {
     String controllerAddress = getControllerAddressForTableCreate(controllerHost, controllerPort);
     LOGGER.info("Trying to send table creation request {} to {}. ", tableConfig, controllerAddress);
     int responseCode = sendRequest("POST", controllerAddress, tableConfig);
-    if (responseCode == 409) {
+    /*
+        If the response code is HTTP_CONFLICT (409), this means there is already a table in Pinot, hence now we are attempting to update the table.
+        Note: Pinot upserts (update/create) REALTIME tables in POST calls however only creates OFFLINE tables in POST calls.
+        Hence we need to check for conflict to trigger explicit update for OFFLINE table.
+     */
+    if (responseCode == HTTP_CONFLICT) {
       LOGGER.info("Trying to update table with request {} to {}. ", tableConfig, controllerAddress);
       sendRequest(
           "PUT",
@@ -418,7 +427,7 @@ public class PinotUtils {
       writer.flush();
 
       final int responseCode = conn.getResponseCode();
-      if (responseCode != 200) {
+      if (responseCode != HTTP_OK) {
         LOGGER.warn(
             "Pinot request failed. Response code: "
                 + conn.getResponseCode()
@@ -432,7 +441,7 @@ public class PinotUtils {
       String errorResponse = readInputStream(conn.getErrorStream());
       throw new RuntimeException("Error while sending request to pinot: " + errorResponse, e);
     }
-    return 200;
+    return HTTP_OK;
   }
   /** Utility for reading from an InputStream and converting it to String */
   private static String readInputStream(InputStream inputStream) {
