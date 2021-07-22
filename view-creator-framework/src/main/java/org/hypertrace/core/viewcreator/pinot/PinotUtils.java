@@ -25,7 +25,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -42,7 +41,6 @@ import javax.annotation.Nullable;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
-import org.apache.http.HttpException;
 import org.apache.pinot.plugin.inputformat.avro.AvroUtils;
 import org.apache.pinot.spi.config.table.TableConfig;
 import org.apache.pinot.spi.config.table.TableTaskConfig;
@@ -385,67 +383,63 @@ public class PinotUtils {
       String controllerPort,
       final String tableConfig,
       final String tableName) {
-    try {
-      String controllerAddress = getControllerAddressForTableCreate(controllerHost, controllerPort);
-      LOGGER.info(
-          "Trying to send table creation request {} to {}. ", tableConfig, controllerAddress);
-      String res = sendRequest("POST", controllerAddress, tableConfig);
-      LOGGER.info(res);
-      return true;
-    } catch (HttpException http_e) {
-      try {
-        String controllerAddress =
-            getControllerAddressForTableUpdate(controllerHost, controllerPort, tableName);
-        LOGGER.info(
-            "Trying to send table update request {} to {}. ", tableConfig, controllerAddress);
-        String res = sendRequest("PUT", controllerAddress, tableConfig);
-        LOGGER.info(res);
-        return true;
-      } catch (Exception e) {
-        LOGGER.error("Failed to update Pinot table.", e);
-        return false;
-      }
-    } catch (Exception e) {
-      LOGGER.error("Failed to create Pinot table.", e);
-      return false;
+    String controllerAddress = getControllerAddressForTableCreate(controllerHost, controllerPort);
+    LOGGER.info("Trying to send table creation request {} to {}. ", tableConfig, controllerAddress);
+    int responseCode = sendRequest("POST", controllerAddress, tableConfig);
+    if (responseCode == 409) {
+      sendRequest(
+          "PUT",
+          getControllerAddressForTableUpdate(controllerHost, controllerPort, tableName),
+          tableConfig);
     }
+    return true;
   }
 
-  public static String sendRequest(String requestMethod, String urlString, String payload)
-      throws IOException, HttpException {
-    final URL url = new URL(urlString);
-    final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+  public static int sendRequest(String requestMethod, String urlString, String payload) {
+    HttpURLConnection conn = null;
+    try {
+      final URL url = new URL(urlString);
 
-    conn.setDoOutput(true);
-    conn.setRequestMethod(requestMethod);
-    if (payload != null) {
+      conn = (HttpURLConnection) url.openConnection();
+      conn.setDoOutput(true);
+      conn.setRequestMethod(requestMethod);
+
       final BufferedWriter writer =
           new BufferedWriter(
               new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8));
       writer.write(payload, 0, payload.length());
       writer.flush();
-    }
 
-    try {
-      if (conn.getResponseCode() >= 400) // error
-      {
-        throw new HttpException();
+      final int responseCode = conn.getResponseCode();
+      if (responseCode != 200) {
+        LOGGER.warn(
+            "Pinot request failed. Response code: "
+                + conn.getResponseCode()
+                + "Response: "
+                + conn.getResponseMessage());
+        return responseCode;
       }
-      return readInputStream(conn.getInputStream());
-    } catch (HttpException e) {
-      throw new HttpException();
+      String successResponse = readInputStream(conn.getInputStream());
+      LOGGER.info("Pinot request successful. Response: ", successResponse);
     } catch (Exception e) {
-      return readInputStream(conn.getErrorStream());
+      String errorResponse = readInputStream(conn.getErrorStream());
+      throw new RuntimeException("Error while sending request to pinot: " + errorResponse, e);
     }
+    return 200;
   }
 
-  private static String readInputStream(InputStream inputStream) throws IOException {
-    final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+  private static String readInputStream(InputStream inputStream) {
     final StringBuilder sb = new StringBuilder();
-    String line;
-    while ((line = reader.readLine()) != null) {
-      sb.append(line);
+    try {
+      final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+      String line;
+      while ((line = reader.readLine()) != null) {
+        sb.append(line);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Exception while reading the stream", e);
     }
+
     return sb.toString();
   }
 
