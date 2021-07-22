@@ -397,7 +397,6 @@ public class PinotUtils {
   }
 
   /**
-   *
    * @param requestMethod: Type of request (PUT/GET/POST/DELTE)
    * @param urlString: Api endpoint
    * @param payload: Payload
@@ -435,9 +434,7 @@ public class PinotUtils {
     }
     return 200;
   }
-   /**
-        Utility for reading from an InputStream and converting it to String
-    **/
+  /** Utility for reading from an InputStream and converting it to String */
   private static String readInputStream(InputStream inputStream) {
     final StringBuilder sb = new StringBuilder();
     try {
@@ -455,6 +452,7 @@ public class PinotUtils {
 
   /**
    * Utility for preparing the api-endpoint for Pinot Table Creation
+   *
    * @param controllerHost : hostname
    * @param controllerPort : port
    * @return
@@ -465,6 +463,7 @@ public class PinotUtils {
   }
   /**
    * Utility for preparing the api-endpoint for Pinot Table Update
+   *
    * @param controllerHost : hostname
    * @param controllerPort : port
    * @param tableName: Name of the table to be updated

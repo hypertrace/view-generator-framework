@@ -212,5 +212,4 @@ public class PinotUtilsTest {
     // TODO: This is deprecated
     assertEquals(TimeUnit.MILLISECONDS, tableConfig.getValidationConfig().getTimeType());
   }
-
 }
