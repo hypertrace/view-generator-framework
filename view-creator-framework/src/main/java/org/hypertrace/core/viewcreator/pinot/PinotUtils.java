@@ -387,6 +387,7 @@ public class PinotUtils {
     LOGGER.info("Trying to send table creation request {} to {}. ", tableConfig, controllerAddress);
     int responseCode = sendRequest("POST", controllerAddress, tableConfig);
     if (responseCode == 409) {
+      LOGGER.info("Trying to update table with request {} to {}. ", tableConfig, controllerAddress);
       sendRequest(
           "PUT",
           getControllerAddressForTableUpdate(controllerHost, controllerPort, tableName),
@@ -395,6 +396,13 @@ public class PinotUtils {
     return true;
   }
 
+  /**
+   *
+   * @param requestMethod: Type of request (PUT/GET/POST/DELTE)
+   * @param urlString: Api endpoint
+   * @param payload: Payload
+   * @return Status Code
+   */
   public static int sendRequest(String requestMethod, String urlString, String payload) {
     HttpURLConnection conn = null;
     try {
@@ -416,18 +424,20 @@ public class PinotUtils {
             "Pinot request failed. Response code: "
                 + conn.getResponseCode()
                 + " Response: "
-                + conn.getResponseMessage());
+                + readInputStream(conn.getErrorStream()));
         return responseCode;
       }
       String successResponse = readInputStream(conn.getInputStream());
-      LOGGER.info("Pinot request successful. Response: ", successResponse);
+      LOGGER.info("Pinot request successful. Response: {}", successResponse);
     } catch (Exception e) {
       String errorResponse = readInputStream(conn.getErrorStream());
       throw new RuntimeException("Error while sending request to pinot: " + errorResponse, e);
     }
     return 200;
   }
-
+   /**
+        Utility for reading from an InputStream and converting it to String
+    **/
   private static String readInputStream(InputStream inputStream) {
     final StringBuilder sb = new StringBuilder();
     try {
@@ -443,11 +453,23 @@ public class PinotUtils {
     return sb.toString();
   }
 
+  /**
+   * Utility for preparing the api-endpoint for Pinot Table Creation
+   * @param controllerHost : hostname
+   * @param controllerPort : port
+   * @return
+   */
   private static String getControllerAddressForTableCreate(
       String controllerHost, String controllerPort) {
     return String.format("http://%s:%s/%s", controllerHost, controllerPort, PINOT_REST_URI_TABLES);
   }
-
+  /**
+   * Utility for preparing the api-endpoint for Pinot Table Update
+   * @param controllerHost : hostname
+   * @param controllerPort : port
+   * @param tableName: Name of the table to be updated
+   * @return
+   */
   private static String getControllerAddressForTableUpdate(
       String controllerHost, String controllerPort, String tableName) {
     return String.format(
