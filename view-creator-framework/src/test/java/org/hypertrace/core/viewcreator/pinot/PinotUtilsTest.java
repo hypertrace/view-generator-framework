@@ -149,6 +149,7 @@ public class PinotUtilsTest {
     assertEquals(
         "BalanceNumSegmentAssignmentStrategy",
         tableConfig.getValidationConfig().getSegmentAssignmentStrategy());
+    assertEquals("http", tableConfig.getValidationConfig().getPeerSegmentDownloadScheme());
 
     // Verify task configs
     final Map<String, String> taskConfig =

@@ -41,6 +41,7 @@ public class PinotTableSpec {
   private String retentionTimeValue;
   private String retentionTimeUnit;
   private String segmentAssignmentStrategy;
+  @Optional private String peerSegmentDownloadScheme;
 
   // Tenants config
   private String brokerTenant;

@@ -316,6 +316,7 @@ public class PinotUtils {
             .setNumReplicas(pinotTableSpec.getNumReplicas())
             .setRetentionTimeValue(pinotTableSpec.getRetentionTimeValue())
             .setRetentionTimeUnit(pinotTableSpec.getRetentionTimeUnit())
+            .setPeerSegmentDownloadScheme(pinotTableSpec.getPeerSegmentDownloadScheme())
             // Tenant configs
             .setBrokerTenant(pinotTableSpec.getBrokerTenant())
             .setServerTenant(pinotTableSpec.getServerTenant())
