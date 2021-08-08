@@ -34,6 +34,9 @@ dependencies {
     implementation("org.glassfish.jersey.core:jersey-common:2.34") {
       because("Information Disclosure [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-ORGGLASSFISHJERSEYCORE-1255637] in org.glassfish.jersey.core:jersey-common@2.30")
     }
+    implementation("org.apache.commons:commons-compress:1.21") {
+      because("Denial of Service (DoS) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316640] in org.apache.commons:commons-compress@1.20")
+    }
   }
 
   implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-serdes:0.1.21")
