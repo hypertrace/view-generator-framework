@@ -7,9 +7,16 @@ import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_OFFLINE_CONFIGS_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_REALTIME_CONFIGS_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_REST_URI_TABLES;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_RT_COMPLETED_TAG_KEY;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_RT_CONSUMING_TAG_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_SCHEMA_MAP_KEYS_SUFFIX;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_SCHEMA_MAP_VALUES_SUFFIX;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_STREAM_CONFIGS_KEY;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_TIER_NAME;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_TIER_SEGMENT_AGE;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_TIER_SEGMENT_SELECTOR_TYPE;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_TIER_SERVER_TAG;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_TIER_STORAGE_TYPE;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_TRANSFORM_COLUMN_FUNCTION;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_TRANSFORM_COLUMN_NAME;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.SIMPLE_AVRO_MESSAGE_DECODER;
@@ -47,6 +54,8 @@ import org.apache.pinot.plugin.inputformat.avro.AvroUtils;
 import org.apache.pinot.spi.config.table.TableConfig;
 import org.apache.pinot.spi.config.table.TableTaskConfig;
 import org.apache.pinot.spi.config.table.TableType;
+import org.apache.pinot.spi.config.table.TagOverrideConfig;
+import org.apache.pinot.spi.config.table.TierConfig;
 import org.apache.pinot.spi.config.table.ingestion.IngestionConfig;
 import org.apache.pinot.spi.config.table.ingestion.TransformConfig;
 import org.apache.pinot.spi.data.DateTimeFieldSpec;
@@ -320,6 +329,9 @@ public class PinotUtils {
             // Tenant configs
             .setBrokerTenant(pinotTableSpec.getBrokerTenant())
             .setServerTenant(pinotTableSpec.getServerTenant())
+            .setTagOverrideConfig(toTagOverrideConfig(pinotTableSpec.getTagOverrideConfigs()))
+            // Tier configs
+            .setTierConfigList(getTableTierConfigs(pinotTableSpec))
             // Task configurations
             .setTaskConfig(toTableTaskConfig(pinotTableSpec.getTaskConfigs()))
             // ingestion configurations
@@ -354,6 +366,37 @@ public class PinotUtils {
     return new IngestionConfig(null, null, null, tableTransformConfigs);
   }
 
+  private static TagOverrideConfig toTagOverrideConfig(Config tenantTagOverrideConfig) {
+    if (tenantTagOverrideConfig == null) {
+      return null;
+    }
+
+    String realtimeConsuming =
+        getOptionalString(tenantTagOverrideConfig, PINOT_RT_CONSUMING_TAG_KEY, null);
+    String realtimeCompleted =
+        getOptionalString(tenantTagOverrideConfig, PINOT_RT_COMPLETED_TAG_KEY, null);
+
+    return new TagOverrideConfig(realtimeConsuming, realtimeCompleted);
+  }
+
+  private static List<TierConfig> getTableTierConfigs(@Nullable PinotTableSpec tableSpec) {
+    List<Config> tierConfigs = tableSpec.getTierConfigs();
+    List<TierConfig> tableTierConfigs = null;
+    if (tierConfigs != null) {
+      tableTierConfigs = new ArrayList<>();
+      for (Config tierConfig : tierConfigs) {
+        tableTierConfigs.add(
+            new TierConfig(
+                tierConfig.getString(PINOT_TIER_NAME),
+                tierConfig.getString(PINOT_TIER_SEGMENT_SELECTOR_TYPE),
+                getOptionalString(tierConfig, PINOT_TIER_SEGMENT_AGE, null),
+                tierConfig.getString(PINOT_TIER_STORAGE_TYPE),
+                getOptionalString(tierConfig, PINOT_TIER_SERVER_TAG, null)));
+      }
+    }
+    return tableTierConfigs;
+  }
+
   private static TableTaskConfig toTableTaskConfig(@Nullable Config allTasksConfigs) {
     if (allTasksConfigs == null) {
       return null;
@@ -380,6 +423,7 @@ public class PinotUtils {
         tableConfig.toJsonString(),
         tableConfig.getTableName());
   }
+
   /** Utility for sending Pinot Table Creation/Update request. */
   public static boolean sendPinotTableCreationRequest(
       String controllerHost,
@@ -442,6 +486,7 @@ public class PinotUtils {
     }
     return HTTP_OK;
   }
+
   /** Utility for reading from an InputStream and converting it to String */
   private static String readInputStream(InputStream inputStream) {
     final StringBuilder sb = new StringBuilder();
@@ -469,6 +514,7 @@ public class PinotUtils {
       String controllerHost, String controllerPort) {
     return String.format("http://%s:%s/%s", controllerHost, controllerPort, PINOT_REST_URI_TABLES);
   }
+
   /**
    * Utility for preparing the api-endpoint for Pinot Table Update
    *
@@ -481,6 +527,14 @@ public class PinotUtils {
       String controllerHost, String controllerPort, String tableName) {
     return String.format(
         "http://%s:%s/%s/%s", controllerHost, controllerPort, PINOT_REST_URI_TABLES, tableName);
+  }
+
+  private static String getOptionalString(Config config, String key, String defaultValue) {
+    if (config.hasPath(key)) {
+      return config.getString(key);
+    } else {
+      return defaultValue;
+    }
   }
 
   private static Config getOptionalConfig(Config config, String key) {

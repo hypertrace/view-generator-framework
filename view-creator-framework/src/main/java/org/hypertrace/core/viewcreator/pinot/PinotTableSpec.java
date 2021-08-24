@@ -48,6 +48,12 @@ public class PinotTableSpec {
   private String serverTenant;
 
   // Task configs
+  @Optional private Config tagOverrideConfigs;
+
+  // Task configs
+  @Optional private List<Config> tierConfigs;
+
+  // Task configs
   @Optional private Config taskConfigs;
 
   // Task configs
