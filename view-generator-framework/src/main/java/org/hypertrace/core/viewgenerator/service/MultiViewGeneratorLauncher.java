@@ -39,8 +39,6 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
 
     for (String viewGen : viewGenNames) {
       ConfigClient client = ConfigClientFactory.getClient();
-
-      client.getConfig();
       Config viewGenConfig = getSubJobConfig(client, viewGen);
       viewGenConfigs.put(viewGen, viewGenConfig);
 
