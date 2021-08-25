@@ -20,9 +20,20 @@ public class PinotViewCreatorConfig {
   public static final String PINOT_TRANSFORM_COLUMN_FUNCTION = "transformFunction";
 
   /////////////
+  // Pinot tier configurations
+  /////////////
+  public static final String PINOT_TIER_NAME = "name";
+  public static final String PINOT_TIER_SEGMENT_SELECTOR_TYPE = "segmentSelectorType";
+  public static final String PINOT_TIER_SEGMENT_AGE = "segmentAge";
+  public static final String PINOT_TIER_STORAGE_TYPE = "storageType";
+  public static final String PINOT_TIER_SERVER_TAG = "serverTag";
+
+  /////////////
   // Pinot REALTIME table configurations
   /////////////
   public static final String PINOT_REALTIME_CONFIGS_KEY = "pinotRealtime";
+  public static final String PINOT_RT_CONSUMING_TAG_KEY = "realtimeConsuming";
+  public static final String PINOT_RT_COMPLETED_TAG_KEY = "realtimeCompleted";
   public static final String PINOT_STREAM_CONFIGS_KEY = "streamConfigs";
   public static final String STREAM_KAFKA_DECODER_CLASS_NAME_KEY =
       "stream.kafka.decoder.class.name";

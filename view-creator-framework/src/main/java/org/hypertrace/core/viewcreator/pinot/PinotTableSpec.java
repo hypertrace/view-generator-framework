@@ -47,6 +47,12 @@ public class PinotTableSpec {
   private String brokerTenant;
   private String serverTenant;
 
+  // Tag override configs
+  @Optional private Config tagOverrideConfigs;
+
+  // Tier configs
+  @Optional private List<Config> tierConfigs;
+
   // Task configs
   @Optional private Config taskConfigs;
 

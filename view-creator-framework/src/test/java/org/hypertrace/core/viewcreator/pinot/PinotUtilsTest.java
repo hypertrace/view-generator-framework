@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.apache.pinot.spi.config.table.TableConfig;
+import org.apache.pinot.spi.config.table.TenantConfig;
+import org.apache.pinot.spi.config.table.TierConfig;
 import org.apache.pinot.spi.config.table.ingestion.TransformConfig;
 import org.apache.pinot.spi.data.DateTimeFieldSpec;
 import org.apache.pinot.spi.data.DateTimeFormatSpec;
@@ -128,8 +130,20 @@ public class PinotUtilsTest {
         "largest", actualStreamConfigs.get("stream.kafka.consumer.prop.auto.offset.reset"));
 
     // Verify tenant configs
-    assertEquals("defaultBroker", tableConfig.getTenantConfig().getBroker());
-    assertEquals("defaultServer", tableConfig.getTenantConfig().getServer());
+    TenantConfig tenantConfig = tableConfig.getTenantConfig();
+    assertEquals("defaultBroker", tenantConfig.getBroker());
+    assertEquals("defaultServer", tenantConfig.getServer());
+    assertEquals("tier-for-consuming", tenantConfig.getTagOverrideConfig().getRealtimeConsuming());
+    assertEquals("tier-for-completed", tenantConfig.getTagOverrideConfig().getRealtimeCompleted());
+
+    // Verify tier configs
+    assertEquals(1, tableConfig.getTierConfigsList().size());
+    TierConfig tierConfig = tableConfig.getTierConfigsList().get(0);
+    assertEquals("hot-data-tier", tierConfig.getName());
+    assertEquals("time", tierConfig.getSegmentSelectorType());
+    assertEquals("5d", tierConfig.getSegmentAge());
+    assertEquals("pinot_server", tierConfig.getStorageType());
+    assertEquals("tier-for-hot-data", tierConfig.getServerTag());
 
     // Verify indexing related configs
     assertTrue(
