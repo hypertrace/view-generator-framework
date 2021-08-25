@@ -106,8 +106,3 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
         ConfigUtils.getEnvironmentProperty("container.name"));
   }
 }
-
-// common - common gradle module
-// service-name - current module
-// cluster - helm
-//
