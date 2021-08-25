@@ -532,16 +532,14 @@ public class PinotUtils {
   private static String getOptionalString(Config config, String key, String defaultValue) {
     if (config.hasPath(key)) {
       return config.getString(key);
-    } else {
-      return defaultValue;
     }
+    return defaultValue;
   }
 
   private static Config getOptionalConfig(Config config, String key) {
     if (config.hasPath(key)) {
       return config.getConfig(key);
-    } else {
-      return ConfigFactory.empty();
     }
+    return ConfigFactory.empty();
   }
 }
