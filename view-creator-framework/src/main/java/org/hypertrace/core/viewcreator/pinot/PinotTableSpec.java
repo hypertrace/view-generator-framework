@@ -50,7 +50,7 @@ public class PinotTableSpec {
   // Tag override configs
   @Optional private Config tagOverrideConfigs;
 
-  // Task configs
+  // Tier configs
   @Optional private List<Config> tierConfigs;
 
   // Task configs
