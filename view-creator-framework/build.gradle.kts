@@ -19,9 +19,9 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.26")
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.31")
   constraints {
-    implementation("io.netty:netty-all:4.1.63.Final") {
+    implementation("io.netty:netty-all:4.1.68.Final") {
       because("HTTP Request Smuggling [High Severity][https://snyk.io/vuln/SNYK-JAVA-IONETTY-559515] in io.netty:netty-all@4.1.28.Final")
     }
   }
@@ -58,6 +58,8 @@ dependencies {
     exclude("org.slf4j", "slf4j-log4j12")
     exclude("org.webjars", "swagger-ui")
     exclude("org.yaml", "snakeyaml")
+    exclude("org.apache.hive", "hive-storage-api")
+    exclude("org.apache.datasketches", "datasketches-java")
   }
   constraints {
     implementation("com.google.guava:guava:30.0-android") {
