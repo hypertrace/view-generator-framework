@@ -58,6 +58,8 @@ dependencies {
     exclude("org.slf4j", "slf4j-log4j12")
     exclude("org.webjars", "swagger-ui")
     exclude("org.yaml", "snakeyaml")
+    exclude("org.apache.hive", "hive-storage-api")
+    exclude("org.apache.datasketches", "datasketches-java")
   }
   constraints {
     implementation("com.google.guava:guava:30.0-android") {
