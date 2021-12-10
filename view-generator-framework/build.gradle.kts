@@ -43,7 +43,7 @@ dependencies {
 
   testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
   testImplementation("org.mockito:mockito-core:3.8.0")
-  testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.0")
+  testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:2.15.0")
 
   constraints {
   }
