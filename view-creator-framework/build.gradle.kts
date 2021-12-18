@@ -21,7 +21,7 @@ tasks.test {
 dependencies {
   implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.31")
   constraints {
-    implementation("io.netty:netty-all:4.1.68.Final") {
+    implementation("io.netty:netty-all:4.1.71.Final") {
       because("HTTP Request Smuggling [High Severity][https://snyk.io/vuln/SNYK-JAVA-IONETTY-559515] in io.netty:netty-all@4.1.28.Final")
     }
   }
@@ -74,7 +74,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok:1.18.20")
   implementation("org.slf4j:slf4j-api:1.7.30")
   implementation("com.typesafe:config:1.4.1")
-  runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.16.0")
+  runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.17.0")
 
   testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
   testImplementation("org.mockito:mockito-core:3.8.0")
