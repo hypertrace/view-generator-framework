@@ -37,6 +37,11 @@ dependencies {
     implementation("org.apache.commons:commons-compress:1.21") {
       because("Denial of Service (DoS) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316640] in org.apache.commons:commons-compress@1.20")
     }
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.1") {
+      because("Denial of Service (DoS) " +
+          "[Medium Severity][https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-2326698] " +
+          "in com.fasterxml.jackson.core:jackson-databind@2.12.2")
+    }
   }
 
   implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-serdes:0.1.21")
