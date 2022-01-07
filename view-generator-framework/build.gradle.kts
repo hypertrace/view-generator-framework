@@ -1,7 +1,7 @@
 plugins {
   `java-library`
   jacoco
-  id("com.commercehub.gradle.plugin.avro") version "0.9.1"
+  id("com.github.davidmc24.gradle.plugin.avro")
   id("org.hypertrace.publish-plugin")
   id("org.hypertrace.jacoco-report-plugin")
 }
@@ -25,7 +25,7 @@ dependencies {
 
   // Logging
   implementation("org.slf4j:slf4j-api:1.7.30")
-  runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.17.0")
+  runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.17.1")
 
   implementation("com.typesafe:config:1.4.1")
 
@@ -37,13 +37,18 @@ dependencies {
     implementation("org.apache.commons:commons-compress:1.21") {
       because("Denial of Service (DoS) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316640] in org.apache.commons:commons-compress@1.20")
     }
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.1") {
+      because("Denial of Service (DoS) " +
+          "[Medium Severity][https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-2326698] " +
+          "in com.fasterxml.jackson.core:jackson-databind@2.12.2")
+    }
   }
 
   implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-serdes:0.1.21")
 
   testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
   testImplementation("org.mockito:mockito-core:3.8.0")
-  testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.0")
+  testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.1")
 
   constraints {
   }
