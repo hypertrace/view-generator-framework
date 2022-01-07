@@ -7,6 +7,7 @@ plugins {
   id("org.hypertrace.publish-plugin") version "1.0.2" apply false
   id("org.hypertrace.jacoco-report-plugin") version "0.2.0" apply false
   id("org.hypertrace.code-style-plugin") version "1.1.0" apply false
+  id("com.github.davidmc24.gradle.plugin.avro") version "1.1.0" apply false
 }
 
 subprojects {
