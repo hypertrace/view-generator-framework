@@ -19,7 +19,7 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.31")
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.33")
 
   implementation("org.apache.avro:avro:1.10.2")
 
@@ -29,7 +29,7 @@ dependencies {
 
   implementation("com.typesafe:config:1.4.1")
 
-  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.1.21")
+  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.1.24")
   constraints {
     implementation("org.glassfish.jersey.core:jersey-common:2.34") {
       because("Information Disclosure [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-ORGGLASSFISHJERSEYCORE-1255637] in org.glassfish.jersey.core:jersey-common@2.30")
@@ -43,8 +43,6 @@ dependencies {
           "in com.fasterxml.jackson.core:jackson-databind@2.12.2")
     }
   }
-
-  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-serdes:0.1.21")
 
   testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
   testImplementation("org.mockito:mockito-core:3.8.0")
