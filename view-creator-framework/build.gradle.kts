@@ -30,6 +30,7 @@ dependencies {
   implementation("org.apache.pinot:pinot-tools:0.7.1") {
     // All these third party libraries are not used in view creation workflow.
     // They bring in lot of vulnerabilities (snyk). so, excluding unused libs
+    exclude("com.google.protobuf", "protobuf-java")
     exclude("com.jayway.jsonpath", "json-path")
     exclude("commons-codec", "commons-codec")
     exclude("commons-collections", "commons-collections")
