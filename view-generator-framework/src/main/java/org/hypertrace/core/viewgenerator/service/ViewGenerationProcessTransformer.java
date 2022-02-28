@@ -27,10 +27,6 @@ public class ViewGenerationProcessTransformer<IN extends SpecificRecord, OUT ext
     this.viewGenName = viewGenName;
   }
 
-  public static ViewGenerationProcessTransformer get(String viewGenName) {
-    return new ViewGenerationProcessTransformer<>(viewGenName);
-  }
-
   @Override
   public void init(ProcessorContext context) {
     this.context = context;

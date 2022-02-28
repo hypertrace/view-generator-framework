@@ -65,7 +65,7 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
     }
 
     inputStream
-        .transform(() -> ViewGenerationProcessTransformer.get(getJobConfigKey()))
+        .transform(() -> new ViewGenerationProcessTransformer(getJobConfigKey()))
         .to(outputTopic, Produced.with(Serdes.String(), producerValueSerde));
     return streamsBuilder;
   }
