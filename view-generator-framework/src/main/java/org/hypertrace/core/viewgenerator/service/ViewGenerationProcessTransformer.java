@@ -1,8 +1,8 @@
 package org.hypertrace.core.viewgenerator.service;
 
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.OUTPUT_TOPIC_CONFIG_KEY;
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.VIEW_GENERATOR_CLASS_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.*;
 
+import com.typesafe.config.Config;
 import java.util.List;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.specific.SpecificRecord;
@@ -14,20 +14,35 @@ import org.hypertrace.core.viewgenerator.JavaCodeBasedViewGenerator;
 public class ViewGenerationProcessTransformer<IN extends SpecificRecord, OUT extends GenericRecord>
     implements Transformer<String, IN, OUT> {
 
+  private final String viewGenName;
+
+  private Config jobConfig;
   private String viewgenClassName;
   private Class<OUT> viewClass;
   private JavaCodeBasedViewGenerator<IN, OUT> viewGenerator;
   private ProcessorContext context;
   private To outputTopic;
 
+  public ViewGenerationProcessTransformer(String viewGenName) {
+    this.viewGenName = viewGenName;
+  }
+
+  public static ViewGenerationProcessTransformer get(String viewGenName) {
+    return new ViewGenerationProcessTransformer<>(viewGenName);
+  }
+
   @Override
   public void init(ProcessorContext context) {
     this.context = context;
+    this.jobConfig = (Config) context.appConfigs().get(this.viewGenName);
+
     String outputTopicName = (String) context.appConfigs().get(OUTPUT_TOPIC_CONFIG_KEY);
-    outputTopic = To.child(outputTopicName);
+    this.outputTopic = To.child(outputTopicName);
+
     this.viewgenClassName = (String) context.appConfigs().get(VIEW_GENERATOR_CLASS_CONFIG_KEY);
     try {
       viewGenerator = createViewGenerator();
+      viewGenerator.configure(jobConfig);
       viewClass = viewGenerator.getViewClass();
     } catch (Exception e) {
       throw new RuntimeException(e);
