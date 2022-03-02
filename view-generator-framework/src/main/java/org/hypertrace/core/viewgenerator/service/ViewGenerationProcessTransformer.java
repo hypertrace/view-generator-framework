@@ -32,10 +32,10 @@ public class ViewGenerationProcessTransformer<IN extends SpecificRecord, OUT ext
     this.context = context;
     this.jobConfig = (Config) context.appConfigs().get(this.viewGenName);
 
-    String outputTopicName = (String) context.appConfigs().get(OUTPUT_TOPIC_CONFIG_KEY);
+    String outputTopicName = jobConfig.getString(OUTPUT_TOPIC_CONFIG_KEY);
     this.outputTopic = To.child(outputTopicName);
 
-    this.viewgenClassName = (String) context.appConfigs().get(VIEW_GENERATOR_CLASS_CONFIG_KEY);
+    this.viewgenClassName = jobConfig.getString(VIEW_GENERATOR_CLASS_CONFIG_KEY);
     try {
       viewGenerator = createViewGenerator();
       viewGenerator.configure(jobConfig);
