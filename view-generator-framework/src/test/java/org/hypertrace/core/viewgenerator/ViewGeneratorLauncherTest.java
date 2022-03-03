@@ -84,7 +84,6 @@ public class ViewGeneratorLauncherTest {
     Serde<SpanTypeOne> spanTypeOneSerde = new AvroSerde<>();
     spanTypeOneSerde.configure(Map.of(), false);
 
-    // assertNotNull(spanTypeOneSerde.serializer().serialize("test-input-topic", span));
     inputTopic.pipeInput(null, span);
 
     KeyValue<byte[], SpanTypeTwo> kv = outputTopic.readKeyValue();
@@ -92,6 +91,6 @@ public class ViewGeneratorLauncherTest {
     assertEquals("span-id", kv.value.getSpanId());
     assertEquals("span-kind", kv.value.getSpanKind());
     assertEquals(spanStartTime, kv.value.getStartTimeMillis());
-    assertEquals(spanStartTime, kv.value.getEndTimeMillis());
+    assertEquals(spanEndTime, kv.value.getEndTimeMillis());
   }
 }
