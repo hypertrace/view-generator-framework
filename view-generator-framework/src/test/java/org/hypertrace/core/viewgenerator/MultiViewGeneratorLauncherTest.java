@@ -3,6 +3,7 @@ package org.hypertrace.core.viewgenerator;
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.MULTI_VIEW_GEN_JOB_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -110,23 +111,35 @@ public class MultiViewGeneratorLauncherTest {
             .setEndTimeMillis(spanEndTime)
             .build();
 
-    Serde<SpanTypeOne> spanTypeOneSerde = new AvroSerde<>();
-    spanTypeOneSerde.configure(Map.of(), false);
-
+    // test-view-gen-span-event consumes from both the topics, so for both pipeInput
+    // it should receive the result.
+    // test-view-gen-raw-service consume only from one input topic, so it should
+    // get only one piped output.
     inputTopics.get(0).pipeInput(null, span);
-    KeyValue<byte[], SpanTypeTwo> kv = spanTypeTwoOutputTopic.readKeyValue();
-    assertNull(kv.key, "null key expected");
-    assertEquals("span-id", kv.value.getSpanId());
-    assertEquals("span-kind", kv.value.getSpanKind());
-    assertEquals(spanStartTime, kv.value.getStartTimeMillis());
-    assertEquals(spanEndTime, kv.value.getEndTimeMillis());
+    KeyValue<byte[], SpanTypeTwo> spanTypeTwoKeyValue = spanTypeTwoOutputTopic.readKeyValue();
+    assertNull(spanTypeTwoKeyValue.key, "null key expected");
+    assertEquals("span-id", spanTypeTwoKeyValue.value.getSpanId());
+    assertEquals("span-kind", spanTypeTwoKeyValue.value.getSpanKind());
+    assertEquals(spanStartTime, spanTypeTwoKeyValue.value.getStartTimeMillis());
+    assertEquals(spanEndTime, spanTypeTwoKeyValue.value.getEndTimeMillis());
+
+    KeyValue<byte[], RawServiceType> rawServiceTypeKeyValue =
+        rawServiceTypeOutputTopic.readKeyValue();
+    assertNull(rawServiceTypeKeyValue.key, "null key expected");
+    assertEquals("span-id", rawServiceTypeKeyValue.value.getSpanId());
+    assertEquals("span-kind", rawServiceTypeKeyValue.value.getSpanKind());
+    assertEquals(spanStartTime, rawServiceTypeKeyValue.value.getStartTimeMillis());
+    assertEquals(spanEndTime, rawServiceTypeKeyValue.value.getEndTimeMillis());
 
     inputTopics.get(1).pipeInput(null, span1);
-    kv = spanTypeTwoOutputTopic.readKeyValue();
-    assertNull(kv.key, "null key expected");
-    assertEquals("span-id-1", kv.value.getSpanId());
-    assertEquals("span-kind", kv.value.getSpanKind());
-    assertEquals(spanStartTime, kv.value.getStartTimeMillis());
-    assertEquals(spanEndTime, kv.value.getEndTimeMillis());
+
+    spanTypeTwoKeyValue = spanTypeTwoOutputTopic.readKeyValue();
+    assertNull(rawServiceTypeKeyValue.key, "null key expected");
+    assertEquals("span-id-1", spanTypeTwoKeyValue.value.getSpanId());
+    assertEquals("span-kind", spanTypeTwoKeyValue.value.getSpanKind());
+    assertEquals(spanStartTime, spanTypeTwoKeyValue.value.getStartTimeMillis());
+    assertEquals(spanEndTime, spanTypeTwoKeyValue.value.getEndTimeMillis());
+
+    assertTrue(rawServiceTypeOutputTopic.isEmpty());
   }
 }
