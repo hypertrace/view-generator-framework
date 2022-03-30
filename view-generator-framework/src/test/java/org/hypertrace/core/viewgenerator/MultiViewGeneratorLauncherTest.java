@@ -67,7 +67,7 @@ public class MultiViewGeneratorLauncherTest {
     rawServiceTypeSerde.configure(Map.of(), false);
 
     // pick up from each view-gen config
-    List<String> topics = List.of("test-input-topic1", "test-input-topic12");
+    List<String> topics = List.of("test-input-topic1", "test-input-topic2");
     for (String topic : topics) {
       TestInputTopic<byte[], SpanTypeOne> inputTopic =
           td.createInputTopic(
