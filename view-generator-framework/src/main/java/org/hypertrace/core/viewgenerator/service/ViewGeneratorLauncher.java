@@ -47,12 +47,11 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
 
     KStream<String, Object> mergeStream = null;
 
-    for(String topic : inputTopics) {
+    for (String topic : inputTopics) {
       KStream<String, Object> inputStream = (KStream<String, Object>) inputStreams.get(topic);
 
       if (inputStream == null) {
-        inputStream = streamsBuilder
-            .stream(topic, Consumed.with(Serdes.String(), null));
+        inputStream = streamsBuilder.stream(topic, Consumed.with(Serdes.String(), null));
         inputStreams.put(topic, inputStream);
       }
 

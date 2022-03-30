@@ -58,12 +58,10 @@ public class ViewGeneratorLauncherTest {
     spanTypeTwoSerde.configure(Map.of(), false);
 
     List<String> topics = config.getStringList(INPUT_TOPIC_CONFIG_KEY);
-    for(String topic : topics) {
+    for (String topic : topics) {
       TestInputTopic<byte[], SpanTypeOne> inputTopic =
           td.createInputTopic(
-              topic,
-              Serdes.ByteArray().serializer(),
-              spanTypeOneSerde.serializer());
+              topic, Serdes.ByteArray().serializer(), spanTypeOneSerde.serializer());
       inputTopics.add(inputTopic);
     }
     outputTopic =
@@ -141,6 +139,5 @@ public class ViewGeneratorLauncherTest {
     assertEquals("span-kind", kv.value.getSpanKind());
     assertEquals(spanStartTime, kv.value.getStartTimeMillis());
     assertEquals(spanEndTime, kv.value.getEndTimeMillis());
-
   }
 }
