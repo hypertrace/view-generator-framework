@@ -1,7 +1,7 @@
 package org.hypertrace.core.viewgenerator.service;
 
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.DEFAULT_VIEW_GEN_JOB_CONFIG_KEY;
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.INPUT_TOPIC_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.INPUT_TOPICS_CONFIG_KEY;
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.OUTPUT_TOPIC_CONFIG_KEY;
 
 import com.typesafe.config.Config;
@@ -42,7 +42,7 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
 
     Config jobConfig = getJobConfig(properties);
 
-    List<String> inputTopics = jobConfig.getStringList(INPUT_TOPIC_CONFIG_KEY);
+    List<String> inputTopics = jobConfig.getStringList(INPUT_TOPICS_CONFIG_KEY);
     String outputTopic = jobConfig.getString(OUTPUT_TOPIC_CONFIG_KEY);
 
     KStream<String, Object> mergeStream = null;

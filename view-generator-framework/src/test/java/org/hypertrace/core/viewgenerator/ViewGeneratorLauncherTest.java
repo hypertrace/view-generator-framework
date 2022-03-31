@@ -1,7 +1,10 @@
 package org.hypertrace.core.viewgenerator;
 
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.DEFAULT_VIEW_GEN_JOB_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.INPUT_TOPICS_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.OUTPUT_TOPIC_CONFIG_KEY;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -12,7 +15,11 @@ import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.*;
+import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.TopologyTestDriver;
 import org.hypertrace.core.kafkastreams.framework.serdes.AvroSerde;
 import org.hypertrace.core.serviceframework.config.ConfigClientFactory;
 import org.hypertrace.core.viewgenerator.service.ViewGeneratorLauncher;
@@ -57,7 +64,7 @@ public class ViewGeneratorLauncherTest {
     Serde<SpanTypeTwo> spanTypeTwoSerde = new AvroSerde<>();
     spanTypeTwoSerde.configure(Map.of(), false);
 
-    List<String> topics = config.getStringList(INPUT_TOPIC_CONFIG_KEY);
+    List<String> topics = config.getStringList(INPUT_TOPICS_CONFIG_KEY);
     for (String topic : topics) {
       TestInputTopic<byte[], SpanTypeOne> inputTopic =
           td.createInputTopic(

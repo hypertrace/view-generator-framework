@@ -1,6 +1,9 @@
 package org.hypertrace.core.viewgenerator.service;
 
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.*;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.INPUT_TOPICS_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.MULTI_VIEW_GEN_JOB_CONFIG;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.OUTPUT_TOPIC_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.VIEW_GENERATORS_CONFIG;
 
 import com.typesafe.config.Config;
 import java.util.HashMap;
@@ -61,7 +64,7 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
     Set<String> inputTopics = new HashSet<>();
     for (String viewGen : viewGenNames) {
       Config viewGenConfig = viewGenConfigs.get(viewGen);
-      inputTopics.add(viewGenConfig.getString(INPUT_TOPIC_CONFIG_KEY));
+      inputTopics.addAll(viewGenConfig.getStringList(INPUT_TOPICS_CONFIG_KEY));
     }
     return inputTopics.stream().collect(Collectors.toList());
   }
