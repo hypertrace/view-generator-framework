@@ -29,4 +29,9 @@ protocol TestAvroSchemas {
 
     string span_kind;
   }
+
+  record KeyType {
+    string tenant_id;
+    string span_id;
+  }
 }

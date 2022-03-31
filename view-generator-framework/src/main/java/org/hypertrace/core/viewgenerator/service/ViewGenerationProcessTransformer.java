@@ -14,7 +14,7 @@ import org.apache.kafka.streams.processor.To;
 import org.hypertrace.core.viewgenerator.JavaCodeBasedViewGenerator;
 
 public class ViewGenerationProcessTransformer<IN extends SpecificRecord, OUT extends GenericRecord>
-    implements Transformer<String, IN, List<KeyValue<String, OUT>>> {
+    implements Transformer<Object, IN, List<KeyValue<Object, OUT>>> {
 
   private final String viewGenName;
 
@@ -48,8 +48,8 @@ public class ViewGenerationProcessTransformer<IN extends SpecificRecord, OUT ext
   }
 
   @Override
-  public List<KeyValue<String, OUT>> transform(String key, IN value) {
-    List<KeyValue<String, OUT>> outputKVPairs = new ArrayList<>();
+  public List<KeyValue<Object, OUT>> transform(Object key, IN value) {
+    List<KeyValue<Object, OUT>> outputKVPairs = new ArrayList<>();
     List<OUT> output = viewGenerator.process(value);
     if (output != null) {
       for (OUT out : output) {

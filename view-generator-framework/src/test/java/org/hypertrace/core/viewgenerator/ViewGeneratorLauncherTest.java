@@ -4,6 +4,7 @@ import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.D
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.INPUT_TOPICS_CONFIG_KEY;
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.OUTPUT_TOPIC_CONFIG_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.typesafe.config.Config;
@@ -14,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TestInputTopic;
@@ -23,6 +23,7 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import org.hypertrace.core.kafkastreams.framework.serdes.AvroSerde;
 import org.hypertrace.core.serviceframework.config.ConfigClientFactory;
 import org.hypertrace.core.viewgenerator.service.ViewGeneratorLauncher;
+import org.hypertrace.core.viewgenerator.test.api.KeyType;
 import org.hypertrace.core.viewgenerator.test.api.SpanTypeOne;
 import org.hypertrace.core.viewgenerator.test.api.SpanTypeTwo;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,10 +31,9 @@ import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.SetEnvironmentVariable;
 
 public class ViewGeneratorLauncherTest {
-  private static final String SERVICE_NAME = "servicename";
   private ViewGeneratorLauncher underTest;
-  List<TestInputTopic<byte[], SpanTypeOne>> inputTopics = new ArrayList<>();
-  TestOutputTopic<byte[], SpanTypeTwo> outputTopic;
+  private List<TestInputTopic<KeyType, SpanTypeOne>> inputTopics = new ArrayList<>();
+  private TestOutputTopic<KeyType, SpanTypeTwo> outputTopic;
 
   @BeforeEach
   @SetEnvironmentVariable(key = "SERVICE_NAME", value = "test-view-generator")
@@ -58,6 +58,9 @@ public class ViewGeneratorLauncherTest {
 
     TopologyTestDriver td = new TopologyTestDriver(streamsBuilder.build(), props);
 
+    Serde<KeyType> keyTypeAvroSerde = new AvroSerde<>();
+    keyTypeAvroSerde.configure(Map.of(), false);
+
     Serde<SpanTypeOne> spanTypeOneSerde = new AvroSerde<>();
     spanTypeOneSerde.configure(Map.of(), false);
 
@@ -66,15 +69,14 @@ public class ViewGeneratorLauncherTest {
 
     List<String> topics = config.getStringList(INPUT_TOPICS_CONFIG_KEY);
     for (String topic : topics) {
-      TestInputTopic<byte[], SpanTypeOne> inputTopic =
-          td.createInputTopic(
-              topic, Serdes.ByteArray().serializer(), spanTypeOneSerde.serializer());
+      TestInputTopic<KeyType, SpanTypeOne> inputTopic =
+          td.createInputTopic(topic, keyTypeAvroSerde.serializer(), spanTypeOneSerde.serializer());
       inputTopics.add(inputTopic);
     }
     outputTopic =
         td.createOutputTopic(
             config.getString(OUTPUT_TOPIC_CONFIG_KEY),
-            Serdes.ByteArray().deserializer(),
+            keyTypeAvroSerde.deserializer(),
             spanTypeTwoSerde.deserializer());
   }
 
@@ -97,8 +99,19 @@ public class ViewGeneratorLauncherTest {
 
     inputTopics.get(0).pipeInput(null, span);
 
-    KeyValue<byte[], SpanTypeTwo> kv = outputTopic.readKeyValue();
-    assertNull(kv.key, "null key expected");
+    KeyValue<KeyType, SpanTypeTwo> kv = outputTopic.readKeyValue();
+    assertNull(kv.key, "non-null key expected");
+    assertEquals("span-id", kv.value.getSpanId());
+    assertEquals("span-kind", kv.value.getSpanKind());
+    assertEquals(spanStartTime, kv.value.getStartTimeMillis());
+    assertEquals(spanEndTime, kv.value.getEndTimeMillis());
+
+    inputTopics
+        .get(0)
+        .pipeInput(KeyType.newBuilder().setTenantId("t1").setSpanId("1234").build(), span);
+
+    kv = outputTopic.readKeyValue();
+    assertNotNull(kv.key, "non null key expected");
     assertEquals("span-id", kv.value.getSpanId());
     assertEquals("span-kind", kv.value.getSpanKind());
     assertEquals(spanStartTime, kv.value.getStartTimeMillis());
@@ -132,7 +145,7 @@ public class ViewGeneratorLauncherTest {
 
     inputTopics.get(0).pipeInput(null, span);
 
-    KeyValue<byte[], SpanTypeTwo> kv = outputTopic.readKeyValue();
+    KeyValue<KeyType, SpanTypeTwo> kv = outputTopic.readKeyValue();
     assertNull(kv.key, "null key expected");
     assertEquals("span-id", kv.value.getSpanId());
     assertEquals("span-kind", kv.value.getSpanKind());
