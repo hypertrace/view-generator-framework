@@ -44,7 +44,7 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
     List<String> inputTopics = jobConfig.getStringList(INPUT_TOPICS_CONFIG_KEY);
     String outputTopic = jobConfig.getString(OUTPUT_TOPIC_CONFIG_KEY);
 
-    KStream<Object, Object> mergeStream = null;
+    KStream<Object, Object> mergedStream = null;
 
     for (String topic : inputTopics) {
       KStream<Object, Object> inputStream = (KStream<Object, Object>) inputStreams.get(topic);
@@ -54,10 +54,10 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
         inputStreams.put(topic, inputStream);
       }
 
-      if (mergeStream == null) {
-        mergeStream = inputStream;
+      if (mergedStream == null) {
+        mergedStream = inputStream;
       } else {
-        mergeStream = mergeStream.merge(inputStream);
+        mergedStream = mergedStream.merge(inputStream);
       }
     }
 
@@ -75,7 +75,7 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
       }
     }
 
-    mergeStream
+    mergedStream
         .flatTransform(() -> new ViewGenerationProcessTransformer(getJobConfigKey()))
         .to(outputTopic, Produced.with(null, producerValueSerde));
     return streamsBuilder;
