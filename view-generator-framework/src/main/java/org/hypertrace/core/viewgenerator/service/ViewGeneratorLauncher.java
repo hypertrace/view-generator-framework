@@ -1,10 +1,11 @@
 package org.hypertrace.core.viewgenerator.service;
 
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.DEFAULT_VIEW_GEN_JOB_CONFIG_KEY;
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.INPUT_TOPIC_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.INPUT_TOPICS_CONFIG_KEY;
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.OUTPUT_TOPIC_CONFIG_KEY;
 
 import com.typesafe.config.Config;
+import java.util.List;
 import java.util.Map;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -41,13 +42,24 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
 
     Config jobConfig = getJobConfig(properties);
 
-    String inputTopic = jobConfig.getString(INPUT_TOPIC_CONFIG_KEY);
+    List<String> inputTopics = jobConfig.getStringList(INPUT_TOPICS_CONFIG_KEY);
     String outputTopic = jobConfig.getString(OUTPUT_TOPIC_CONFIG_KEY);
 
-    KStream<?, ?> inputStream = inputStreams.get(inputTopic);
-    if (inputStream == null) {
-      inputStream = streamsBuilder.stream(inputTopic, Consumed.with(Serdes.String(), null));
-      inputStreams.put(inputTopic, inputStream);
+    KStream<String, Object> mergedStream = null;
+
+    for (String topic : inputTopics) {
+      KStream<String, Object> inputStream = (KStream<String, Object>) inputStreams.get(topic);
+
+      if (inputStream == null) {
+        inputStream = streamsBuilder.stream(topic, Consumed.with(Serdes.String(), null));
+        inputStreams.put(topic, inputStream);
+      }
+
+      if (mergedStream == null) {
+        mergedStream = inputStream;
+      } else {
+        mergedStream = mergedStream.merge(inputStream);
+      }
     }
 
     // This environment property helps in overriding producer value serde. For hypertrace quickstart
@@ -64,7 +76,7 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
       }
     }
 
-    inputStream
+    mergedStream
         .flatTransform(() -> new ViewGenerationProcessTransformer(getJobConfigKey()))
         .to(outputTopic, Produced.with(Serdes.String(), producerValueSerde));
     return streamsBuilder;
