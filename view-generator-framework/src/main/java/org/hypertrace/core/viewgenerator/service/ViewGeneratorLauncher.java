@@ -8,6 +8,7 @@ import com.typesafe.config.Config;
 import java.util.List;
 import java.util.Map;
 import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
@@ -44,13 +45,13 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
     List<String> inputTopics = jobConfig.getStringList(INPUT_TOPICS_CONFIG_KEY);
     String outputTopic = jobConfig.getString(OUTPUT_TOPIC_CONFIG_KEY);
 
-    KStream<Object, Object> mergedStream = null;
+    KStream<String, Object> mergedStream = null;
 
     for (String topic : inputTopics) {
-      KStream<Object, Object> inputStream = (KStream<Object, Object>) inputStreams.get(topic);
+      KStream<String, Object> inputStream = (KStream<String, Object>) inputStreams.get(topic);
 
       if (inputStream == null) {
-        inputStream = streamsBuilder.stream(topic, Consumed.with(null, null));
+        inputStream = streamsBuilder.stream(topic, Consumed.with(Serdes.String(), null));
         inputStreams.put(topic, inputStream);
       }
 
@@ -77,7 +78,7 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
 
     mergedStream
         .flatTransform(() -> new ViewGenerationProcessTransformer(getJobConfigKey()))
-        .to(outputTopic, Produced.with(null, producerValueSerde));
+        .to(outputTopic, Produced.with(Serdes.String(), producerValueSerde));
     return streamsBuilder;
   }
 

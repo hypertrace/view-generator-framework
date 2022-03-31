@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes.StringSerde;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TestInputTopic;
@@ -22,7 +23,6 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import org.hypertrace.core.kafkastreams.framework.serdes.AvroSerde;
 import org.hypertrace.core.serviceframework.config.ConfigClientFactory;
 import org.hypertrace.core.viewgenerator.service.MultiViewGeneratorLauncher;
-import org.hypertrace.core.viewgenerator.test.api.KeyType;
 import org.hypertrace.core.viewgenerator.test.api.RawServiceType;
 import org.hypertrace.core.viewgenerator.test.api.SpanTypeOne;
 import org.hypertrace.core.viewgenerator.test.api.SpanTypeTwo;
@@ -32,9 +32,9 @@ import org.junitpioneer.jupiter.SetEnvironmentVariable;
 
 public class MultiViewGeneratorLauncherTest {
   private MultiViewGeneratorLauncher underTest;
-  private List<TestInputTopic<KeyType, SpanTypeOne>> inputTopics = new ArrayList<>();
-  private TestOutputTopic<KeyType, SpanTypeTwo> spanTypeTwoOutputTopic;
-  private TestOutputTopic<KeyType, RawServiceType> rawServiceTypeOutputTopic;
+  private List<TestInputTopic<String, SpanTypeOne>> inputTopics = new ArrayList<>();
+  private TestOutputTopic<String, SpanTypeTwo> spanTypeTwoOutputTopic;
+  private TestOutputTopic<String, RawServiceType> rawServiceTypeOutputTopic;
 
   @BeforeEach
   @SetEnvironmentVariable(key = "SERVICE_NAME", value = "test-multi-view-generator")
@@ -59,9 +59,6 @@ public class MultiViewGeneratorLauncherTest {
 
     TopologyTestDriver td = new TopologyTestDriver(streamsBuilder.build(), props);
 
-    Serde<KeyType> keyTypeAvroSerde = new AvroSerde<>();
-    keyTypeAvroSerde.configure(Map.of(), false);
-
     Serde<SpanTypeOne> spanTypeOneSerde = new AvroSerde<>();
     spanTypeOneSerde.configure(Map.of(), false);
 
@@ -74,21 +71,21 @@ public class MultiViewGeneratorLauncherTest {
     // pick up from each view-gen config
     List<String> topics = List.of("test-input-topic1", "test-input-topic2");
     for (String topic : topics) {
-      TestInputTopic<KeyType, SpanTypeOne> inputTopic =
-          td.createInputTopic(topic, keyTypeAvroSerde.serializer(), spanTypeOneSerde.serializer());
+      TestInputTopic<String, SpanTypeOne> inputTopic =
+          td.createInputTopic(topic, new StringSerde().serializer(), spanTypeOneSerde.serializer());
       inputTopics.add(inputTopic);
     }
 
     spanTypeTwoOutputTopic =
         td.createOutputTopic(
             "test-span-type-two-output-topic",
-            keyTypeAvroSerde.deserializer(),
+            new StringSerde().deserializer(),
             spanTypeTwoSerde.deserializer());
 
     rawServiceTypeOutputTopic =
         td.createOutputTopic(
             "test-raw-service-type-output-topic",
-            keyTypeAvroSerde.deserializer(),
+            new StringSerde().deserializer(),
             rawServiceTypeSerde.deserializer());
   }
 
@@ -119,14 +116,14 @@ public class MultiViewGeneratorLauncherTest {
     // test-view-gen-raw-service consume only from one input topic, so it should
     // get only one piped output.
     inputTopics.get(0).pipeInput(null, span);
-    KeyValue<KeyType, SpanTypeTwo> spanTypeTwoKeyValue = spanTypeTwoOutputTopic.readKeyValue();
+    KeyValue<String, SpanTypeTwo> spanTypeTwoKeyValue = spanTypeTwoOutputTopic.readKeyValue();
     assertNull(spanTypeTwoKeyValue.key, "null key expected");
     assertEquals("span-id", spanTypeTwoKeyValue.value.getSpanId());
     assertEquals("span-kind", spanTypeTwoKeyValue.value.getSpanKind());
     assertEquals(spanStartTime, spanTypeTwoKeyValue.value.getStartTimeMillis());
     assertEquals(spanEndTime, spanTypeTwoKeyValue.value.getEndTimeMillis());
 
-    KeyValue<KeyType, RawServiceType> rawServiceTypeKeyValue =
+    KeyValue<String, RawServiceType> rawServiceTypeKeyValue =
         rawServiceTypeOutputTopic.readKeyValue();
     assertNull(rawServiceTypeKeyValue.key, "null key expected");
     assertEquals("span-id", rawServiceTypeKeyValue.value.getSpanId());
@@ -146,24 +143,20 @@ public class MultiViewGeneratorLauncherTest {
     assertTrue(rawServiceTypeOutputTopic.isEmpty());
 
     // test by sending non-null key
-    inputTopics
-        .get(0)
-        .pipeInput(KeyType.newBuilder().setTenantId("t1").setSpanId("t1-1234").build(), span);
-    inputTopics
-        .get(1)
-        .pipeInput(KeyType.newBuilder().setTenantId("t2").setSpanId("t2-1234").build(), span1);
+    inputTopics.get(0).pipeInput("t1", span);
+    inputTopics.get(1).pipeInput("t2", span1);
 
     // two records for span-event, one record for raw-service type
     spanTypeTwoKeyValue = spanTypeTwoOutputTopic.readKeyValue();
     assertNotNull(spanTypeTwoKeyValue.key, "non null key expected");
-    assertTrue(List.of("t1", "t2").contains(spanTypeTwoKeyValue.key.getTenantId()));
+    assertTrue(List.of("t1", "t2").contains(spanTypeTwoKeyValue.key));
 
     spanTypeTwoKeyValue = spanTypeTwoOutputTopic.readKeyValue();
     assertNotNull(spanTypeTwoKeyValue.key, "non null key expected");
-    assertTrue(List.of("t1", "t2").contains(spanTypeTwoKeyValue.key.getTenantId()));
+    assertTrue(List.of("t1", "t2").contains(spanTypeTwoKeyValue.key));
 
     rawServiceTypeKeyValue = rawServiceTypeOutputTopic.readKeyValue();
     assertNotNull(rawServiceTypeKeyValue.key, "non null key expected");
-    assertEquals("t1", rawServiceTypeKeyValue.key.getTenantId());
+    assertEquals("t1", rawServiceTypeKeyValue.key);
   }
 }
