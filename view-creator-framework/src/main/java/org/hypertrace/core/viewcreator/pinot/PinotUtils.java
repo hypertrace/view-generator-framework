@@ -347,6 +347,11 @@ public class PinotUtils {
     // Unable to set few configs via building hence setting them later directly
     final TableConfig tableConfig = tableConfigBuilder.build();
     tableConfig.getIndexingConfig().setAggregateMetrics(pinotTableSpec.isAggregateMetrics());
+    if (tableType == TableType.REALTIME) {
+      tableConfig
+          .getValidationConfig()
+          .setReplicasPerPartition(pinotTableSpec.getReplicasPerPartition());
+    }
 
     return tableConfig;
   }

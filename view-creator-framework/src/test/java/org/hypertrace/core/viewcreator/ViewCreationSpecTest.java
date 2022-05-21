@@ -50,7 +50,8 @@ public class ViewCreationSpecTest {
 
     assertEquals(pinotTableSpec.getTableName(), "myView1");
     assertEquals(pinotTableSpec.getLoadMode(), "MMAP");
-    assertEquals(pinotTableSpec.getNumReplicas(), 1);
+    assertEquals(pinotTableSpec.getNumReplicas(), 2);
+    assertEquals(pinotTableSpec.getReplicasPerPartition(), "1");
     assertEquals(pinotTableSpec.getRetentionTimeUnit(), "DAYS");
     assertEquals(pinotTableSpec.getRetentionTimeValue(), "3");
     assertEquals(pinotTableSpec.getBrokerTenant(), "defaultBroker");
