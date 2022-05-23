@@ -157,7 +157,8 @@ public class PinotUtilsTest {
     assertEquals(false, tableConfig.getIndexingConfig().isAggregateMetrics());
 
     // Verify segment configs
-    assertEquals(1, tableConfig.getValidationConfig().getReplicationNumber());
+    assertEquals(2, tableConfig.getValidationConfig().getReplicationNumber());
+    assertEquals(1, tableConfig.getValidationConfig().getReplicasPerPartitionNumber());
     assertEquals("3", tableConfig.getValidationConfig().getRetentionTimeValue());
     assertEquals("DAYS", tableConfig.getValidationConfig().getRetentionTimeUnit());
     assertEquals(
@@ -215,7 +216,7 @@ public class PinotUtilsTest {
     assertEquals(List.of("id_sha"), tableConfig.getIndexingConfig().getBloomFilterColumns());
 
     // Verify segment configs
-    assertEquals(1, tableConfig.getValidationConfig().getReplicationNumber());
+    assertEquals(2, tableConfig.getValidationConfig().getReplicationNumber());
     assertEquals("90", tableConfig.getValidationConfig().getRetentionTimeValue());
     assertEquals("DAYS", tableConfig.getValidationConfig().getRetentionTimeUnit());
     assertEquals(

@@ -36,6 +36,7 @@ public class PinotTableSpec {
 
   // Segments config
   private int numReplicas;
+  @Optional private String replicasPerPartition = "1";
   private TimeUnit timeUnit;
   private String timeColumn;
   private String retentionTimeValue;
