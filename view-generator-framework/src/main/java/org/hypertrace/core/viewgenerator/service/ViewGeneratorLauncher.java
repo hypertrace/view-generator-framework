@@ -100,16 +100,14 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
 
   private AvroFieldValuePartitioner<GenericRecord> getPartitioner(
       Map<String, Object> properties, String topic) {
-    AvroFieldValuePartitioner<GenericRecord> partitioner = null;
     String topicsStr = (String) properties.get("avro.field.value.partitioner.enabled.topics");
     if (topicsStr != null) {
       boolean enabledForTopic =
           Splitter.on(",").trimResults().splitToStream(topicsStr).anyMatch(topic::equals);
       if (enabledForTopic) {
-        partitioner = new AvroFieldValuePartitioner<>();
-        partitioner.configure(properties);
+        return new AvroFieldValuePartitioner<>(properties);
       }
     }
-    return partitioner;
+    return null;
   }
 }

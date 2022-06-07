@@ -14,12 +14,11 @@ dependencies {
   implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.33")
   implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.1.26-SNAPSHOT")
   implementation("org.apache.avro:avro:1.10.2")
-  implementation("com.typesafe:config:1.4.1")
-  implementation("com.google.guava:guava:30.1-jre")
+  implementation("com.typesafe:config:1.4.2")
+  implementation("com.google.guava:guava:31.1-jre")
 
   // Logging
-  implementation("org.slf4j:slf4j-api:1.7.30")
-  runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.17.2")
+  implementation("org.slf4j:slf4j-api:1.7.36")
 
   constraints {
     implementation("org.glassfish.jersey.core:jersey-common:2.34") {
@@ -39,10 +38,13 @@ dependencies {
   testImplementation("org.junit-pioneer:junit-pioneer:1.7.0")
   testImplementation("org.mockito:mockito-core:4.5.1")
   testImplementation("org.apache.kafka:kafka-streams-test-utils:6.0.1-ccs")
-  testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.2")
+  testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.17.2")
 }
 
 // Disabling compatibility check for the test avro definitions.
 tasks.named<org.hypertrace.gradle.avro.CheckAvroCompatibility>("avroCompatibilityCheck") {
   setAgainstFiles(null)
+}
+repositories {
+  mavenCentral()
 }
