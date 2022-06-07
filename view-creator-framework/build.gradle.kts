@@ -76,14 +76,14 @@ dependencies {
     }
   }
 
-  compileOnly("org.projectlombok:lombok:1.18.20")
-  annotationProcessor("org.projectlombok:lombok:1.18.20")
-  implementation("org.slf4j:slf4j-api:1.7.30")
+  compileOnly("org.projectlombok:lombok:1.18.24")
+  annotationProcessor("org.projectlombok:lombok:1.18.24")
+  implementation("org.slf4j:slf4j-api:1.7.36")
   implementation("com.typesafe:config:1.4.1")
-  runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.17.1")
+  runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.17.2")
 
-  testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
-  testImplementation("org.mockito:mockito-core:3.8.0")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+  testImplementation("org.mockito:mockito-core:4.5.1")
 }
 
 group = "org.hypertrace.core.viewcreator"

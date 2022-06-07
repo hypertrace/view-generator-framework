@@ -4,9 +4,11 @@ import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.D
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.INPUT_TOPICS_CONFIG_KEY;
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.OUTPUT_TOPIC_CONFIG_KEY;
 
+import com.google.common.base.Splitter;
 import com.typesafe.config.Config;
 import java.util.List;
 import java.util.Map;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -14,6 +16,7 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.hypertrace.core.kafkastreams.framework.KafkaStreamsApp;
+import org.hypertrace.core.kafkastreams.framework.partitioner.AvroFieldValuePartitioner;
 import org.hypertrace.core.serviceframework.config.ConfigClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +81,10 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
 
     mergedStream
         .flatTransform(() -> new ViewGenerationProcessTransformer(getJobConfigKey()))
-        .to(outputTopic, Produced.with(Serdes.String(), producerValueSerde));
+        .to(
+            outputTopic,
+            Produced.with(
+                Serdes.String(), producerValueSerde, getPartitioner(properties, outputTopic)));
     return streamsBuilder;
   }
 
@@ -90,5 +96,20 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
 
   private Config getJobConfig(Map<String, Object> properties) {
     return (Config) properties.get(getJobConfigKey());
+  }
+
+  private AvroFieldValuePartitioner<GenericRecord> getPartitioner(
+      Map<String, Object> properties, String topic) {
+    AvroFieldValuePartitioner<GenericRecord> partitioner = null;
+    String topicsStr = (String) properties.get("avro.field.value.partitioner.enabled.topics");
+    if (topicsStr != null) {
+      boolean enabledForTopic =
+          Splitter.on(",").trimResults().splitToStream(topicsStr).anyMatch(topic::equals);
+      if (enabledForTopic) {
+        partitioner = new AvroFieldValuePartitioner<>();
+        partitioner.configure(properties);
+      }
+    }
+    return partitioner;
   }
 }
