@@ -1,17 +1,9 @@
 plugins {
   `java-library`
   jacoco
-  id("com.github.davidmc24.gradle.plugin.avro")
   id("org.hypertrace.publish-plugin")
   id("org.hypertrace.jacoco-report-plugin")
-}
-
-sourceSets {
-  test {
-    java {
-      srcDir("build/generated-test-avro-java")
-    }
-  }
+  id("org.hypertrace.avro-plugin")
 }
 
 tasks.test {
@@ -20,16 +12,14 @@ tasks.test {
 
 dependencies {
   implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.33")
-
+  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.1.26")
   implementation("org.apache.avro:avro:1.10.2")
+  implementation("com.typesafe:config:1.4.2")
+  implementation("com.google.guava:guava:31.1-jre")
 
   // Logging
-  implementation("org.slf4j:slf4j-api:1.7.30")
-  runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.17.1")
+  implementation("org.slf4j:slf4j-api:1.7.36")
 
-  implementation("com.typesafe:config:1.4.1")
-
-  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.1.25")
   constraints {
     implementation("org.glassfish.jersey.core:jersey-common:2.34") {
       because("Information Disclosure [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-ORGGLASSFISHJERSEYCORE-1255637] in org.glassfish.jersey.core:jersey-common@2.30")
@@ -44,12 +34,14 @@ dependencies {
     }
   }
 
-  testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
-  testImplementation("org.junit-pioneer:junit-pioneer:1.3.8")
-  testImplementation("org.mockito:mockito-core:3.8.0")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+  testImplementation("org.junit-pioneer:junit-pioneer:1.7.0")
+  testImplementation("org.mockito:mockito-core:4.5.1")
   testImplementation("org.apache.kafka:kafka-streams-test-utils:6.0.1-ccs")
-  testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.1")
+  testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.17.2")
+}
 
-  constraints {
-  }
+// Disabling compatibility check for the test avro definitions.
+tasks.named<org.hypertrace.gradle.avro.CheckAvroCompatibility>("avroCompatibilityCheck") {
+  setAgainstFiles(null)
 }
