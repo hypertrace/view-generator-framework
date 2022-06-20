@@ -24,6 +24,7 @@ import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREA
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_DECODER_CLASS_NAME_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigBeanFactory;
@@ -46,11 +47,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.apache.pinot.plugin.inputformat.avro.AvroUtils;
+import org.apache.pinot.spi.config.table.ColumnPartitionConfig;
+import org.apache.pinot.spi.config.table.RoutingConfig;
+import org.apache.pinot.spi.config.table.SegmentPartitionConfig;
+import org.apache.pinot.spi.config.table.StarTreeIndexConfig;
 import org.apache.pinot.spi.config.table.TableConfig;
 import org.apache.pinot.spi.config.table.TableTaskConfig;
 import org.apache.pinot.spi.config.table.TableType;
@@ -100,6 +106,7 @@ public class PinotUtils {
             STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY, creationSpec.getOutputSchema().toString());
       }
     }
+
     pinotTableSpec.setStreamConfigs(streamConfigsMap);
 
     return pinotTableSpec;
@@ -315,10 +322,15 @@ public class PinotUtils {
             .setLoadMode(pinotTableSpec.getLoadMode())
             .setSchemaName(viewCreationSpec.getViewName())
             // Indexing related fields
+            .setSortedColumn(pinotTableSpec.getSortedColumn())
             .setInvertedIndexColumns(pinotTableSpec.getInvertedIndexColumns())
             .setBloomFilterColumns(pinotTableSpec.getBloomFilterColumns())
             .setNoDictionaryColumns(pinotTableSpec.getNoDictionaryColumns())
             .setRangeIndexColumns(pinotTableSpec.getRangeIndexColumns())
+            .setStarTreeIndexConfigs(
+                toStarTreeIndexConfigs(pinotTableSpec.getStarTreeIndexConfigs()))
+            .setSegmentPartitionConfig(
+                toSegmentPartitionConfig(pinotTableSpec.getSegmentPartitionConfig()))
             // Segment configs
             .setTimeColumnName(pinotTableSpec.getTimeColumn())
             .setTimeType(pinotTableSpec.getTimeUnit().toString())
@@ -335,7 +347,9 @@ public class PinotUtils {
             // Task configurations
             .setTaskConfig(toTableTaskConfig(pinotTableSpec.getTaskConfigs()))
             // ingestion configurations
-            .setIngestionConfig(getTableIngestionConfig(pinotTableSpec));
+            .setIngestionConfig(toTableIngestionConfig(pinotTableSpec))
+            // routing and instance assignment config
+            .setRoutingConfig(toRoutingConfig(pinotTableSpec.getRoutingConfig()));
 
     if (tableType == TableType.REALTIME) {
       // Stream configs only for REALTIME
@@ -356,7 +370,64 @@ public class PinotUtils {
     return tableConfig;
   }
 
-  private static IngestionConfig getTableIngestionConfig(@Nullable PinotTableSpec tableSpec) {
+  private static RoutingConfig toRoutingConfig(Config routingConfig) {
+    if (routingConfig == null) {
+      return null;
+    }
+    List<String> segmentPrunerTypes = null;
+    if (routingConfig.hasPath("segmentPrunerTypes")) {
+      segmentPrunerTypes = routingConfig.getStringList("segmentPrunerTypes");
+    }
+    String instanceSelectorType = getOptionalString(routingConfig, "instanceSelectorType", null);
+    if (segmentPrunerTypes != null || instanceSelectorType != null) {
+      return new RoutingConfig(null, segmentPrunerTypes, instanceSelectorType);
+    }
+    return null;
+  }
+
+  private static SegmentPartitionConfig toSegmentPartitionConfig(Config segmentPartitionConfig) {
+    if (segmentPartitionConfig == null) {
+      return null;
+    }
+    Config columnPartitionMap = segmentPartitionConfig.getConfig("columnPartitionMap");
+    Map<String, ColumnPartitionConfig> tableColumnPartitionMap = Maps.newHashMap();
+    for (Entry<String, ConfigValue> entry : columnPartitionMap.entrySet()) {
+      String columnName = ConfigUtil.splitPath(entry.getKey()).get(0);
+      Config columnPartitionerConfig = columnPartitionMap.getConfig(columnName);
+      String functionName = columnPartitionerConfig.getString("functionName");
+      int numPartitions = columnPartitionerConfig.getInt("numPartitions");
+      tableColumnPartitionMap.put(
+          columnName, new ColumnPartitionConfig(functionName, numPartitions));
+    }
+    return new SegmentPartitionConfig(tableColumnPartitionMap);
+  }
+
+  private static List<StarTreeIndexConfig> toStarTreeIndexConfigs(
+      List<Config> starTreeIndexConfigs) {
+    List<StarTreeIndexConfig> tableStarTreeIndexConfigs = Lists.newArrayList();
+    if (starTreeIndexConfigs != null) {
+      tableStarTreeIndexConfigs =
+          starTreeIndexConfigs.stream()
+              .map(
+                  config -> {
+                    List<String> dimensionsSplitOrder =
+                        config.getStringList("dimensionsSplitOrder");
+                    List<String> skipStarNodeCreationForDimensions =
+                        config.getStringList("skipStarNodeCreationForDimensions");
+                    List<String> functionColumnPairs = config.getStringList("functionColumnPairs");
+                    int maxLeafRecords = getOptionalInt(config, "maxLeafRecords", 0);
+                    return new StarTreeIndexConfig(
+                        dimensionsSplitOrder,
+                        skipStarNodeCreationForDimensions,
+                        functionColumnPairs,
+                        maxLeafRecords);
+                  })
+              .collect(Collectors.toUnmodifiableList());
+    }
+    return tableStarTreeIndexConfigs;
+  }
+
+  private static IngestionConfig toTableIngestionConfig(@Nullable PinotTableSpec tableSpec) {
     List<Config> transformConfigs = tableSpec.getTransformConfigs();
     List<TransformConfig> tableTransformConfigs = null;
     if (transformConfigs != null) {
@@ -532,6 +603,13 @@ public class PinotUtils {
       String controllerHost, String controllerPort, String tableName) {
     return String.format(
         "http://%s:%s/%s/%s", controllerHost, controllerPort, PINOT_REST_URI_TABLES, tableName);
+  }
+
+  private static int getOptionalInt(Config config, String key, int defaultValue) {
+    if (config.hasPath(key)) {
+      return config.getInt(key);
+    }
+    return defaultValue;
   }
 
   private static String getOptionalString(Config config, String key, String defaultValue) {
