@@ -24,6 +24,9 @@ public class PinotTableSpec {
   @Optional private List<String> dateTimeColumns = Collections.emptyList();
 
   // Table index configs
+  @Optional private String sortedColumn;
+  @Optional private List<Config> starTreeIndexConfigs;
+  @Optional private Config segmentPartitionConfig;
   private List<String> invertedIndexColumns;
   private List<String> noDictionaryColumns;
   private List<String> bloomFilterColumns;
@@ -57,6 +60,9 @@ public class PinotTableSpec {
   // Task configs
   @Optional private Config taskConfigs;
 
-  // Task configs
+  // transform configs
   @Optional private List<Config> transformConfigs;
+
+  // routing configs
+  @Optional private Config routingConfig;
 }

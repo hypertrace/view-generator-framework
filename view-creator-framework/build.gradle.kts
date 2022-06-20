@@ -1,17 +1,9 @@
 plugins {
   `java-library`
   jacoco
-  id("com.github.davidmc24.gradle.plugin.avro")
+  id("org.hypertrace.avro-plugin")
   id("org.hypertrace.publish-plugin")
   id("org.hypertrace.jacoco-report-plugin")
-}
-
-sourceSets {
-  test {
-    java {
-      srcDirs("build/generated-test-avro-java")
-    }
-  }
 }
 
 tasks.test {
@@ -33,7 +25,6 @@ dependencies {
     exclude("com.google.protobuf", "protobuf-java")
     exclude("com.jayway.jsonpath", "json-path")
     exclude("commons-codec", "commons-codec")
-    exclude("commons-collections", "commons-collections")
     exclude("commons-httpclient", "commons-httpclient")
     exclude("commons-io", "commons-io")
     exclude("io.grpc", "grpc-netty-shaded")
@@ -83,6 +74,11 @@ dependencies {
 
   testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
   testImplementation("org.mockito:mockito-core:4.5.1")
+}
+
+// Disabling compatibility check for the test avro definitions.
+tasks.named<org.hypertrace.gradle.avro.CheckAvroCompatibility>("avroCompatibilityCheck") {
+  setAgainstFiles(null)
 }
 
 group = "org.hypertrace.core.viewcreator"

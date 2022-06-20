@@ -1,5 +1,6 @@
 package org.hypertrace.core.viewcreator.pinot;
 
+import static java.util.Objects.requireNonNull;
 import static org.apache.pinot.spi.config.table.TableType.OFFLINE;
 import static org.apache.pinot.spi.config.table.TableType.REALTIME;
 import static org.apache.pinot.spi.data.FieldSpec.DEFAULT_DIMENSION_NULL_VALUE_OF_STRING;
@@ -16,6 +17,11 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.apache.pinot.spi.config.table.ColumnPartitionConfig;
+import org.apache.pinot.spi.config.table.IndexingConfig;
+import org.apache.pinot.spi.config.table.RoutingConfig;
+import org.apache.pinot.spi.config.table.SegmentPartitionConfig;
+import org.apache.pinot.spi.config.table.StarTreeIndexConfig;
 import org.apache.pinot.spi.config.table.TableConfig;
 import org.apache.pinot.spi.config.table.TenantConfig;
 import org.apache.pinot.spi.config.table.TierConfig;
@@ -39,9 +45,10 @@ public class PinotUtilsTest {
         ViewCreationSpec.parse(
             ConfigFactory.parseFile(
                 new File(
-                    this.getClass()
-                        .getClassLoader()
-                        .getResource("sample-view-generation-spec.conf")
+                    requireNonNull(
+                            this.getClass()
+                                .getClassLoader()
+                                .getResource("sample-view-generation-spec.conf"))
                         .getPath())));
     final PinotTableSpec pinotTableSpec = getPinotRealtimeTableSpec(viewCreationSpec);
 
@@ -96,19 +103,23 @@ public class PinotUtilsTest {
         ViewCreationSpec.parse(
             ConfigFactory.parseFile(
                 new File(
-                    this.getClass()
-                        .getClassLoader()
-                        .getResource("sample-view-generation-spec.conf")
+                    requireNonNull(
+                            this.getClass()
+                                .getClassLoader()
+                                .getResource("sample-view-generation-spec.conf"))
                         .getPath())));
     final PinotTableSpec pinotTableSpec = getPinotRealtimeTableSpec(viewCreationSpec);
     final TableConfig tableConfig =
         buildPinotTableConfig(viewCreationSpec, pinotTableSpec, REALTIME);
     LOGGER.info("Pinot Table Config for View: {}", tableConfig);
+
+    IndexingConfig indexingConfig = tableConfig.getIndexingConfig();
+
     assertEquals("myView1_REALTIME", tableConfig.getTableName());
     assertEquals(REALTIME, tableConfig.getTableType());
-    assertEquals("MMAP", tableConfig.getIndexingConfig().getLoadMode());
+    assertEquals("MMAP", indexingConfig.getLoadMode());
     final Map<String, String> actualStreamConfigs =
-        tableConfig.getIndexingConfig().getStreamConfigs();
+        requireNonNull(indexingConfig.getStreamConfigs());
     assertEquals("kafka", actualStreamConfigs.get("streamType"));
     assertEquals("LowLevel", actualStreamConfigs.get("stream.kafka.consumer.type"));
     assertEquals("test-view-events", actualStreamConfigs.get("stream.kafka.topic.name"));
@@ -133,12 +144,15 @@ public class PinotUtilsTest {
     TenantConfig tenantConfig = tableConfig.getTenantConfig();
     assertEquals("defaultBroker", tenantConfig.getBroker());
     assertEquals("defaultServer", tenantConfig.getServer());
-    assertEquals("tier-for-consuming", tenantConfig.getTagOverrideConfig().getRealtimeConsuming());
+    assertEquals(
+        "tier-for-consuming",
+        requireNonNull(tenantConfig.getTagOverrideConfig()).getRealtimeConsuming());
     assertEquals("tier-for-completed", tenantConfig.getTagOverrideConfig().getRealtimeCompleted());
 
     // Verify tier configs
-    assertEquals(1, tableConfig.getTierConfigsList().size());
-    TierConfig tierConfig = tableConfig.getTierConfigsList().get(0);
+    List<TierConfig> tierConfigs = requireNonNull(tableConfig.getTierConfigsList());
+    assertEquals(1, tierConfigs.size());
+    TierConfig tierConfig = tierConfigs.get(0);
     assertEquals("hot-data-tier", tierConfig.getName());
     assertEquals("time", tierConfig.getSegmentSelectorType());
     assertEquals("5d", tierConfig.getSegmentAge());
@@ -146,15 +160,38 @@ public class PinotUtilsTest {
     assertEquals("tier-for-hot-data", tierConfig.getServerTag());
 
     // Verify indexing related configs
+    assertEquals("tenant_id", requireNonNull(indexingConfig.getSortedColumn()).get(0));
     assertTrue(
-        tableConfig
-            .getIndexingConfig()
+        indexingConfig
             .getRangeIndexColumns()
             .containsAll(List.of("creation_time_millis", "start_time_millis")));
+    assertEquals(List.of("properties__VALUES"), indexingConfig.getNoDictionaryColumns());
+    assertEquals(List.of("id_sha"), indexingConfig.getBloomFilterColumns());
+    assertFalse(indexingConfig.isAggregateMetrics());
+
+    // star-tree index configs
+    StarTreeIndexConfig starTreeIndexConfig =
+        requireNonNull(indexingConfig.getStarTreeIndexConfigs()).get(0);
     assertEquals(
-        List.of("properties__VALUES"), tableConfig.getIndexingConfig().getNoDictionaryColumns());
-    assertEquals(List.of("id_sha"), tableConfig.getIndexingConfig().getBloomFilterColumns());
-    assertEquals(false, tableConfig.getIndexingConfig().isAggregateMetrics());
+        List.of("tenant_id", "start_time_millis"), starTreeIndexConfig.getDimensionsSplitOrder());
+    assertEquals(List.of(), starTreeIndexConfig.getSkipStarNodeCreationForDimensions());
+    assertEquals(
+        List.of("COUNT__name", "SUM__time_taken_millis"),
+        starTreeIndexConfig.getFunctionColumnPairs());
+    assertEquals(100, starTreeIndexConfig.getMaxLeafRecords());
+
+    // segment partition configs
+    SegmentPartitionConfig segmentPartitionConfig = indexingConfig.getSegmentPartitionConfig();
+    Map<String, ColumnPartitionConfig> columnPartitionMap =
+        requireNonNull(segmentPartitionConfig).getColumnPartitionMap();
+    assertEquals(1, columnPartitionMap.size());
+    assertEquals("HashCode", columnPartitionMap.get("tenant_id").getFunctionName());
+    assertEquals(4, columnPartitionMap.get("tenant_id").getNumPartitions());
+
+    // routing config
+    RoutingConfig routingConfig = requireNonNull(tableConfig.getRoutingConfig());
+    assertEquals(List.of("time", "partition"), routingConfig.getSegmentPrunerTypes());
+    assertEquals("replicaGroup", routingConfig.getInstanceSelectorType());
 
     // Verify segment configs
     assertEquals(2, tableConfig.getValidationConfig().getReplicationNumber());
@@ -168,17 +205,21 @@ public class PinotUtilsTest {
 
     // Verify task configs
     final Map<String, String> taskConfig =
-        tableConfig.getTaskConfig().getConfigsForTaskType("RealtimeToOfflineSegmentsTask");
+        requireNonNull(tableConfig.getTaskConfig())
+            .getConfigsForTaskType("RealtimeToOfflineSegmentsTask");
     assertEquals(1, tableConfig.getTaskConfig().getTaskTypeConfigsMap().size());
     assertEquals("6h", taskConfig.get("bucketTimePeriod"));
     assertEquals("12h", taskConfig.get("bufferTimePeriod"));
 
-    // TODO: This is deprecated
+    assertEquals("tenant_id", indexingConfig.getSortedColumn().get(0));
     assertEquals("creation_time_millis", tableConfig.getValidationConfig().getTimeColumnName());
     // TODO: This is deprecated
     assertEquals(TimeUnit.MILLISECONDS, tableConfig.getValidationConfig().getTimeType());
 
-    TransformConfig transformConfig = tableConfig.getIngestionConfig().getTransformConfigs().get(0);
+    // verify transformation configs
+    TransformConfig transformConfig =
+        requireNonNull(requireNonNull(tableConfig.getIngestionConfig()).getTransformConfigs())
+            .get(0);
     assertEquals("bucket_start_time_millis", transformConfig.getColumnName());
     assertEquals("round(start_time_millis, 3600000)", transformConfig.getTransformFunction());
   }
@@ -189,9 +230,10 @@ public class PinotUtilsTest {
         ViewCreationSpec.parse(
             ConfigFactory.parseFile(
                 new File(
-                    this.getClass()
-                        .getClassLoader()
-                        .getResource("sample-view-generation-spec.conf")
+                    requireNonNull(
+                            this.getClass()
+                                .getClassLoader()
+                                .getResource("sample-view-generation-spec.conf"))
                         .getPath())));
     final PinotTableSpec pinotTableSpec = getPinotOfflineTableSpec(viewCreationSpec);
     final TableConfig tableConfig =
@@ -223,7 +265,6 @@ public class PinotUtilsTest {
         "BalanceNumSegmentAssignmentStrategy",
         tableConfig.getValidationConfig().getSegmentAssignmentStrategy());
 
-    // TODO: This is deprecated
     assertEquals("creation_time_millis", tableConfig.getValidationConfig().getTimeColumnName());
     // TODO: This is deprecated
     assertEquals(TimeUnit.MILLISECONDS, tableConfig.getValidationConfig().getTimeType());

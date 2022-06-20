@@ -32,6 +32,7 @@ public class ViewCreationSpecTest {
     assertEquals(pinotTableSpec.getControllerHost(), "localhost");
     assertEquals(pinotTableSpec.getControllerPort(), "9000");
     assertEquals(pinotTableSpec.getTimeColumn(), "creation_time_millis");
+    assertEquals(pinotTableSpec.getSortedColumn(), "tenant_id");
     assertEquals(pinotTableSpec.getTimeUnit(), TimeUnit.MILLISECONDS);
     assertEquals(
         pinotTableSpec.getDimensionColumns(),

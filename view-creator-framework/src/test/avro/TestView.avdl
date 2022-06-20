@@ -1,6 +1,7 @@
 @namespace("org.hypertrace.core.viewcreator.test.api")
 protocol TestViewProtocol {
   record TestView {
+    union { null, string } tenant_id = null;
     union { null, string } name = null;
     long creation_time_millis = -1;
     long start_time_millis = 0;
