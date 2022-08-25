@@ -18,7 +18,7 @@ dependencies {
     }
   }
 
-  implementation("org.apache.avro:avro:1.10.2")
+  implementation("org.apache.avro:avro:1.11.1")
   implementation("org.apache.pinot:pinot-tools:0.10.0") {
     // All these third party libraries are not used in view creation workflow.
     // They bring in lot of vulnerabilities (snyk). so, excluding unused libs
@@ -82,3 +82,6 @@ tasks.named<org.hypertrace.gradle.avro.CheckAvroCompatibility>("avroCompatibilit
 }
 
 group = "org.hypertrace.core.viewcreator"
+repositories {
+  mavenCentral()
+}
