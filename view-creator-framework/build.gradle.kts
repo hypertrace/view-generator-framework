@@ -80,6 +80,3 @@ tasks.named<org.hypertrace.gradle.avro.CheckAvroCompatibility>("avroCompatibilit
 }
 
 group = "org.hypertrace.core.viewcreator"
-repositories {
-  mavenCentral()
-}
