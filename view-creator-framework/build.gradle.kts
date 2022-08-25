@@ -13,13 +13,11 @@ tasks.test {
 dependencies {
   implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.31")
   constraints {
-    implementation("io.netty:netty-all:4.1.68.Final") {
-      because("HTTP Request Smuggling [High Severity][https://snyk.io/vuln/SNYK-JAVA-IONETTY-559515] in io.netty:netty-all@4.1.28.Final")
-    }
+    implementation("io.netty:netty-all:4.1.79.Final")
   }
 
-  implementation("org.apache.avro:avro:1.10.2")
-  implementation("org.apache.pinot:pinot-tools:0.7.1") {
+  implementation("org.apache.avro:avro:1.11.1")
+  implementation("org.apache.pinot:pinot-tools:0.10.0") {
     // All these third party libraries are not used in view creation workflow.
     // They bring in lot of vulnerabilities (snyk). so, excluding unused libs
     exclude("com.google.protobuf", "protobuf-java")
