@@ -11,7 +11,7 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.31")
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.43")
   constraints {
     implementation("io.netty:netty-all:4.1.79.Final")
   }
@@ -52,6 +52,9 @@ dependencies {
     exclude("org.apache.datasketches", "datasketches-java")
   }
   constraints {
+    implementation("org.apache.calcite.avatica:avatica-core:1.22.0") {
+      because("Arbitrary Code Execution [High Severity][https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHECALCITEAVATICA-2961770]")
+    }
     implementation("com.google.guava:guava:30.0-android") {
       because("Information Disclosure [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415] in com.google.guava:guava@28.2-android")
     }
