@@ -66,6 +66,9 @@ dependencies {
           "[https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-2421244] " +
           "in com.fasterxml.jackson.core:jackson-databind@2.13.1")
     }
+    implementation("org.glassfish.jersey.core:jersey-common:2.34") {
+      because("https://snyk.io/vuln/SNYK-JAVA-ORGGLASSFISHJERSEYCORE-1255637")
+    }
   }
 
   compileOnly("org.projectlombok:lombok:1.18.24")
