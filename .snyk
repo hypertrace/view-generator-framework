@@ -6,4 +6,12 @@ ignore:
     - '*':
         reason: No replacement available
         expires: 2022-12-30T00:00:00.000Z
+  SNYK-JAVA-COMMONSCOLLECTIONS-472711:
+    - '*':
+        reason: No replacement available
+        expires: 2022-12-30T00:00:00.000Z
+  SNYK-JAVA-COMMONSCOLLECTIONS-30078:
+    - '*':
+        reason: No replacement available
+        expires: 2022-12-30T00:00:00.000Z
 patch: {}
