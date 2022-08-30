@@ -17,7 +17,7 @@ dependencies {
   }
 
   implementation("org.apache.avro:avro:1.11.1")
-  implementation("org.apache.pinot:pinot-tools:0.10.0") {
+  implementation("org.apache.pinot:pinot-tools:0.7.1") {
     // All these third party libraries are not used in view creation workflow.
     // They bring in lot of vulnerabilities (snyk). so, excluding unused libs
     exclude("com.google.protobuf", "protobuf-java")
