@@ -29,6 +29,7 @@ dependencies {
     exclude("io.netty", "netty")
     exclude("javax.servlet", "javax.servlet-api")
     exclude("org.apache.calcite", "calcite-core")
+    exclude("org.apache.calcite.avatica", "avatica-core")
     exclude("org.apache.hadoop", "hadoop-common")
     exclude("org.apache.hadoop", "hadoop-hdfs")
     exclude("org.apache.helix", "helix-core")
@@ -51,23 +52,12 @@ dependencies {
     exclude("org.apache.hive", "hive-storage-api")
     exclude("org.apache.datasketches", "datasketches-java")
   }
+
   constraints {
-    implementation("org.apache.calcite.avatica:avatica-core:1.22.0") {
-      because("Arbitrary Code Execution [High Severity][https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHECALCITEAVATICA-2961770]")
-    }
-    implementation("com.google.guava:guava:30.0-android") {
-      because("Information Disclosure [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415] in com.google.guava:guava@28.2-android")
-    }
-    implementation("org.apache.commons:commons-compress:1.21") {
-      because("Denial of Service (DoS) [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316640] in org.apache.commons:commons-compress@1.20")
-    }
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.2.1") {
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.2.2") {
       because("Denial of Service (DoS) [High Severity]" +
-          "[https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-2421244] " +
-          "in com.fasterxml.jackson.core:jackson-databind@2.13.1")
-    }
-    implementation("org.glassfish.jersey.core:jersey-common:2.34") {
-      because("https://snyk.io/vuln/SNYK-JAVA-ORGGLASSFISHJERSEYCORE-1255637")
+              "[https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-2421244] " +
+              "in com.fasterxml.jackson.core:jackson-databind@2.13.1")
     }
   }
 
@@ -76,8 +66,8 @@ dependencies {
   implementation("org.slf4j:slf4j-api:1.7.36")
   implementation("com.typesafe:config:1.4.1")
 
-  testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
-  testImplementation("org.mockito:mockito-core:4.5.1")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
+  testImplementation("org.mockito:mockito-core:4.7.0")
 }
 
 // Disabling compatibility check for the test avro definitions.
