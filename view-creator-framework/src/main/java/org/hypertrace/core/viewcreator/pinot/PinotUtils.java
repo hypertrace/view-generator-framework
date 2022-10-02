@@ -512,16 +512,17 @@ public class PinotUtils {
     /*
        If the response code is HTTP_CONFLICT (409), this means there is already a table in Pinot, hence now we are attempting to update the table.
        Note: Pinot upserts (update/create) REALTIME tables in POST calls however only creates OFFLINE tables in POST calls.
-       Hence we need to check for conflict to trigger explicit update for OFFLINE table.
+       Hence, we need to check for conflict to trigger explicit update for OFFLINE table.
     */
     if (responseCode == HTTP_CONFLICT) {
       LOGGER.info("Trying to update table with request {} to {}. ", tableConfig, controllerAddress);
-      sendRequest(
-          "PUT",
-          getControllerAddressForTableUpdate(controllerHost, controllerPort, tableName),
-          tableConfig);
+      responseCode =
+          sendRequest(
+              "PUT",
+              getControllerAddressForTableUpdate(controllerHost, controllerPort, tableName),
+              tableConfig);
     }
-    return true;
+    return responseCode == HTTP_OK;
   }
 
   /**
