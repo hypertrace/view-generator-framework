@@ -13,11 +13,16 @@ tasks.test {
 dependencies {
   implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.43")
   constraints {
-    implementation("io.netty:netty-all:4.1.79.Final")
+    implementation("io.netty:netty-all:4.1.89.Final")
   }
 
   implementation("org.apache.avro:avro:1.11.1")
-  implementation("org.apache.pinot:pinot-tools:0.7.1") {
+  constraints {
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2") {
+      because("version 2.12.7.1 has a vulnerability https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-3038424")
+    }
+  }
+  implementation("org.apache.pinot:pinot-tools:0.10.0") {
     // All these third party libraries are not used in view creation workflow.
     // They bring in lot of vulnerabilities (snyk). so, excluding unused libs
     exclude("com.google.protobuf", "protobuf-java")
