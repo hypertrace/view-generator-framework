@@ -14,6 +14,11 @@ dependencies {
   implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.43")
   implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.2.0")
   implementation("org.apache.avro:avro:1.11.1")
+  constraints {
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2") {
+      because("version 2.12.7.1 has a vulnerability https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-3038424")
+    }
+  }
   implementation("com.typesafe:config:1.4.2")
   implementation("com.google.guava:guava:31.1-jre")
 
