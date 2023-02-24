@@ -439,7 +439,7 @@ public class PinotUtils {
                 transformConfig.getString(PINOT_TRANSFORM_COLUMN_FUNCTION)));
       }
     }
-    return new IngestionConfig(null, null, null, tableTransformConfigs, null);
+    return new IngestionConfig(null, null, null, tableTransformConfigs);
   }
 
   private static TagOverrideConfig toTagOverrideConfig(Config tenantTagOverrideConfig) {
@@ -467,9 +467,7 @@ public class PinotUtils {
                 tierConfig.getString(PINOT_TIER_SEGMENT_SELECTOR_TYPE),
                 getOptionalString(tierConfig, PINOT_TIER_SEGMENT_AGE, null),
                 tierConfig.getString(PINOT_TIER_STORAGE_TYPE),
-                getOptionalString(tierConfig, PINOT_TIER_SERVER_TAG, null),
-                null,
-                null));
+                getOptionalString(tierConfig, PINOT_TIER_SERVER_TAG, null)));
       }
     }
     return tableTierConfigs;
