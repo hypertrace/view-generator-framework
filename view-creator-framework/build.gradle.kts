@@ -21,8 +21,11 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2") {
       because("version 2.12.7.1 has a vulnerability https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-3038424")
     }
+    implementation("commons-collections:commons-collections:3.2.2") {
+      because("https://snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-30078")
+    }
   }
-  implementation("org.apache.pinot:pinot-tools:0.10.0") {
+  implementation("org.apache.pinot:pinot-tools:0.7.1") {
     // All these third party libraries are not used in view creation workflow.
     // They bring in lot of vulnerabilities (snyk). so, excluding unused libs
     exclude("com.google.protobuf", "protobuf-java")
