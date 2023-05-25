@@ -63,6 +63,9 @@ public class PinotTableSpec {
   // transform configs
   @Optional private List<Config> transformConfigs;
 
+  // filter configs
+  @Optional private Config filterConfig;
+
   // routing configs
   @Optional private Config routingConfig;
 }

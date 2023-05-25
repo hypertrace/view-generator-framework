@@ -20,6 +20,11 @@ public class PinotViewCreatorConfig {
   public static final String PINOT_TRANSFORM_COLUMN_FUNCTION = "transformFunction";
 
   /////////////
+  // Pinot ingestion filter configurations
+  /////////////
+  public static final String PINOT_FILTER_FUNCTION = "filterFunction";
+
+  /////////////
   // Pinot tier configurations
   /////////////
   public static final String PINOT_TIER_NAME = "name";
