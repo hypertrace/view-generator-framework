@@ -25,6 +25,7 @@ import org.apache.pinot.spi.config.table.StarTreeIndexConfig;
 import org.apache.pinot.spi.config.table.TableConfig;
 import org.apache.pinot.spi.config.table.TenantConfig;
 import org.apache.pinot.spi.config.table.TierConfig;
+import org.apache.pinot.spi.config.table.ingestion.FilterConfig;
 import org.apache.pinot.spi.config.table.ingestion.TransformConfig;
 import org.apache.pinot.spi.data.DateTimeFieldSpec;
 import org.apache.pinot.spi.data.DateTimeFormatSpec;
@@ -222,6 +223,11 @@ public class PinotUtilsTest {
             .get(0);
     assertEquals("bucket_start_time_millis", transformConfig.getColumnName());
     assertEquals("round(start_time_millis, 3600000)", transformConfig.getTransformFunction());
+
+    // verify filter config
+    FilterConfig filterConfig =
+        requireNonNull(requireNonNull(tableConfig.getIngestionConfig()).getFilterConfig());
+    assertEquals("strcmp(customer_id, 'abcd-1234') != 0", filterConfig.getFilterFunction());
   }
 
   @Test

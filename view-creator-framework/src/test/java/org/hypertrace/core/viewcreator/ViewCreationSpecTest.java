@@ -1,5 +1,6 @@
 package org.hypertrace.core.viewcreator;
 
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_FILTER_FUNCTION;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_TRANSFORM_COLUMN_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -83,6 +84,10 @@ public class ViewCreationSpecTest {
     Config transformConfig = pinotTableSpec.getTransformConfigs().get(0);
     assertEquals(
         transformConfig.getString(PINOT_TRANSFORM_COLUMN_NAME), "bucket_start_time_millis");
+
+    Config filterConfig = pinotTableSpec.getFilterConfig();
+    assertEquals(
+        filterConfig.getString(PINOT_FILTER_FUNCTION), "strcmp(customer_id, 'abcd-1234') != 0");
   }
 
   @Test

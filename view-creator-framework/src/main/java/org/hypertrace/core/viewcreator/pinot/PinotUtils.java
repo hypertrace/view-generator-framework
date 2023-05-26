@@ -4,6 +4,7 @@ import static com.google.common.collect.Maps.newHashMap;
 import static java.net.HttpURLConnection.HTTP_CONFLICT;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_CONFIGS_KEY;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_FILTER_FUNCTION;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_OFFLINE_CONFIGS_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_REALTIME_CONFIGS_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_REST_URI_TABLES;
@@ -62,6 +63,7 @@ import org.apache.pinot.spi.config.table.TableTaskConfig;
 import org.apache.pinot.spi.config.table.TableType;
 import org.apache.pinot.spi.config.table.TagOverrideConfig;
 import org.apache.pinot.spi.config.table.TierConfig;
+import org.apache.pinot.spi.config.table.ingestion.FilterConfig;
 import org.apache.pinot.spi.config.table.ingestion.IngestionConfig;
 import org.apache.pinot.spi.config.table.ingestion.TransformConfig;
 import org.apache.pinot.spi.data.DateTimeFieldSpec;
@@ -439,7 +441,14 @@ public class PinotUtils {
                 transformConfig.getString(PINOT_TRANSFORM_COLUMN_FUNCTION)));
       }
     }
-    return new IngestionConfig(null, null, null, tableTransformConfigs);
+
+    Config filterConfig = tableSpec.getFilterConfig();
+    FilterConfig tableFilterConfig = null;
+    if (filterConfig != null) {
+      tableFilterConfig = new FilterConfig(filterConfig.getString(PINOT_FILTER_FUNCTION));
+    }
+
+    return new IngestionConfig(null, null, tableFilterConfig, tableTransformConfigs);
   }
 
   private static TagOverrideConfig toTagOverrideConfig(Config tenantTagOverrideConfig) {
