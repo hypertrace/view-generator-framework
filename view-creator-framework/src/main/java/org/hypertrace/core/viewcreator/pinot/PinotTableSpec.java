@@ -68,4 +68,7 @@ public class PinotTableSpec {
 
   // routing configs
   @Optional private Config routingConfig;
+
+  // Field configs
+  @Optional private List<String> textIndexColumns;
 }
