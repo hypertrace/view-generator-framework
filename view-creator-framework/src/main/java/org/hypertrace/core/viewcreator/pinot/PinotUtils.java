@@ -55,6 +55,9 @@ import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.apache.pinot.plugin.inputformat.avro.AvroUtils;
 import org.apache.pinot.spi.config.table.ColumnPartitionConfig;
+import org.apache.pinot.spi.config.table.FieldConfig;
+import org.apache.pinot.spi.config.table.FieldConfig.EncodingType;
+import org.apache.pinot.spi.config.table.FieldConfig.IndexType;
 import org.apache.pinot.spi.config.table.RoutingConfig;
 import org.apache.pinot.spi.config.table.SegmentPartitionConfig;
 import org.apache.pinot.spi.config.table.StarTreeIndexConfig;
@@ -346,6 +349,8 @@ public class PinotUtils {
             .setTagOverrideConfig(toTagOverrideConfig(pinotTableSpec.getTagOverrideConfigs()))
             // Tier configs
             .setTierConfigList(getTableTierConfigs(pinotTableSpec))
+            // Field configs
+            .setFieldConfigList(toFieldConfigs(pinotTableSpec))
             // Task configurations
             .setTaskConfig(toTableTaskConfig(pinotTableSpec.getTaskConfigs()))
             // ingestion configurations
@@ -480,6 +485,16 @@ public class PinotUtils {
       }
     }
     return tableTierConfigs;
+  }
+
+  private static List<FieldConfig> toFieldConfigs(@Nullable PinotTableSpec tableSpec) {
+    if (tableSpec == null || tableSpec.getTextIndexColumns() == null) {
+      return null;
+    }
+
+    return tableSpec.getTextIndexColumns().stream()
+        .map(columnName -> new FieldConfig(columnName, EncodingType.RAW, IndexType.TEXT, null))
+        .collect(Collectors.toUnmodifiableList());
   }
 
   private static TableTaskConfig toTableTaskConfig(@Nullable Config allTasksConfigs) {

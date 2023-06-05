@@ -10,6 +10,7 @@ import static org.hypertrace.core.viewcreator.pinot.PinotUtils.getPinotOfflineTa
 import static org.hypertrace.core.viewcreator.pinot.PinotUtils.getPinotRealtimeTableSpec;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typesafe.config.ConfigFactory;
@@ -18,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.apache.pinot.spi.config.table.ColumnPartitionConfig;
+import org.apache.pinot.spi.config.table.FieldConfig;
+import org.apache.pinot.spi.config.table.FieldConfig.EncodingType;
+import org.apache.pinot.spi.config.table.FieldConfig.IndexType;
 import org.apache.pinot.spi.config.table.IndexingConfig;
 import org.apache.pinot.spi.config.table.RoutingConfig;
 import org.apache.pinot.spi.config.table.SegmentPartitionConfig;
@@ -228,6 +232,15 @@ public class PinotUtilsTest {
     FilterConfig filterConfig =
         requireNonNull(requireNonNull(tableConfig.getIngestionConfig()).getFilterConfig());
     assertEquals("strcmp(customer_id, 'abcd-1234') != 0", filterConfig.getFilterFunction());
+
+    // verify field configs
+    List<FieldConfig> fieldConfigs = requireNonNull(tableConfig.getFieldConfigList());
+    assertEquals(1, fieldConfigs.size());
+    FieldConfig fieldConfig = fieldConfigs.get(0);
+    assertEquals("response_body", fieldConfig.getName());
+    assertEquals(EncodingType.RAW, fieldConfig.getEncodingType());
+    assertEquals(IndexType.TEXT, fieldConfig.getIndexType());
+    assertNull(fieldConfig.getProperties());
   }
 
   @Test

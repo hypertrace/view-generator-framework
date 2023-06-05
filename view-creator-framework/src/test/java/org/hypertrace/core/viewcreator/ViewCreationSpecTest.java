@@ -88,6 +88,8 @@ public class ViewCreationSpecTest {
     Config filterConfig = pinotTableSpec.getFilterConfig();
     assertEquals(
         filterConfig.getString(PINOT_FILTER_FUNCTION), "strcmp(customer_id, 'abcd-1234') != 0");
+
+    assertEquals(pinotTableSpec.getTextIndexColumns(), List.of("response_body"));
   }
 
   @Test
