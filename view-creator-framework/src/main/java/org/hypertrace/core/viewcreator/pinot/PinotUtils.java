@@ -3,6 +3,7 @@ package org.hypertrace.core.viewcreator.pinot;
 import static com.google.common.collect.Maps.newHashMap;
 import static java.net.HttpURLConnection.HTTP_CONFLICT;
 import static java.net.HttpURLConnection.HTTP_OK;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.COMPLETION_CONFIG_COMPLETION_MODE;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_CONFIGS_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_FILTER_FUNCTION;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_OFFLINE_CONFIGS_KEY;
@@ -24,6 +25,8 @@ import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.SIMPL
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_CONSUMER_TYPE_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_DECODER_CLASS_NAME_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.TEXT_INDEX_CONFIG_COLUMN;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.TEXT_INDEX_CONFIG_SKIP_PRIOR_SEGMENTS;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -55,6 +58,7 @@ import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.apache.pinot.plugin.inputformat.avro.AvroUtils;
 import org.apache.pinot.spi.config.table.ColumnPartitionConfig;
+import org.apache.pinot.spi.config.table.CompletionConfig;
 import org.apache.pinot.spi.config.table.FieldConfig;
 import org.apache.pinot.spi.config.table.FieldConfig.EncodingType;
 import org.apache.pinot.spi.config.table.FieldConfig.IndexType;
@@ -356,7 +360,10 @@ public class PinotUtils {
             // ingestion configurations
             .setIngestionConfig(toTableIngestionConfig(pinotTableSpec))
             // routing and instance assignment config
-            .setRoutingConfig(toRoutingConfig(pinotTableSpec.getRoutingConfig()));
+            .setRoutingConfig(toRoutingConfig(pinotTableSpec.getRoutingConfig()))
+            // setCompletionConfig
+            .setCompletionConfig(toCompletionConfig(pinotTableSpec));
+    // setCompletionConfig
 
     if (tableType == TableType.REALTIME) {
       // Stream configs only for REALTIME
@@ -388,6 +395,17 @@ public class PinotUtils {
     String instanceSelectorType = getOptionalString(routingConfig, "instanceSelectorType", null);
     if (segmentPrunerTypes != null || instanceSelectorType != null) {
       return new RoutingConfig(null, segmentPrunerTypes, instanceSelectorType);
+    }
+    return null;
+  }
+
+  private static CompletionConfig toCompletionConfig(@Nullable PinotTableSpec tableSpec) {
+    if (tableSpec == null || tableSpec.getCompletionConfig() == null) {
+      return null;
+    }
+    Config completionConfig = tableSpec.getCompletionConfig();
+    if (completionConfig.hasPath(COMPLETION_CONFIG_COMPLETION_MODE)) {
+      return new CompletionConfig(completionConfig.getString(COMPLETION_CONFIG_COMPLETION_MODE));
     }
     return null;
   }
@@ -488,12 +506,32 @@ public class PinotUtils {
   }
 
   private static List<FieldConfig> toFieldConfigs(@Nullable PinotTableSpec tableSpec) {
-    if (tableSpec == null || tableSpec.getTextIndexColumns() == null) {
+    if (tableSpec == null || tableSpec.getTextIndexConfigs() == null) {
       return null;
     }
 
-    return tableSpec.getTextIndexColumns().stream()
-        .map(columnName -> new FieldConfig(columnName, EncodingType.RAW, IndexType.TEXT, null))
+    return tableSpec.getTextIndexConfigs().stream()
+        .map(
+            textIndexConfig -> {
+              String columnName = textIndexConfig.getString(TEXT_INDEX_CONFIG_COLUMN);
+              FieldConfig fieldConfig =
+                  new FieldConfig(columnName, EncodingType.RAW, IndexType.TEXT, null);
+              if (textIndexConfig.hasPath(TEXT_INDEX_CONFIG_SKIP_PRIOR_SEGMENTS)) {
+                boolean skipPriorSegments =
+                    textIndexConfig.getBoolean(TEXT_INDEX_CONFIG_SKIP_PRIOR_SEGMENTS);
+                fieldConfig =
+                    new FieldConfig(
+                        columnName,
+                        EncodingType.RAW,
+                        IndexType.TEXT,
+                        Map.of(
+                            "fstType",
+                            "lucene",
+                            "skipExistingSegments",
+                            String.valueOf(skipPriorSegments)));
+              }
+              return fieldConfig;
+            })
         .collect(Collectors.toUnmodifiableList());
   }
 

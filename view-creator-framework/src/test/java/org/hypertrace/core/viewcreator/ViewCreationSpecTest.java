@@ -1,7 +1,10 @@
 package org.hypertrace.core.viewcreator;
 
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.COMPLETION_CONFIG_COMPLETION_MODE;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_FILTER_FUNCTION;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_TRANSFORM_COLUMN_NAME;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.TEXT_INDEX_CONFIG_COLUMN;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.TEXT_INDEX_CONFIG_SKIP_PRIOR_SEGMENTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -89,7 +92,12 @@ public class ViewCreationSpecTest {
     assertEquals(
         filterConfig.getString(PINOT_FILTER_FUNCTION), "strcmp(customer_id, 'abcd-1234') != 0");
 
-    assertEquals(pinotTableSpec.getTextIndexColumns(), List.of("response_body"));
+    Config textIndexConfig = pinotTableSpec.getTextIndexConfigs().get(0);
+    assertEquals(textIndexConfig.getString(TEXT_INDEX_CONFIG_COLUMN), "response_body");
+    assertEquals(textIndexConfig.getBoolean(TEXT_INDEX_CONFIG_SKIP_PRIOR_SEGMENTS), true);
+
+    Config completionConfig = pinotTableSpec.getCompletionConfig();
+    assertEquals(completionConfig.getString(COMPLETION_CONFIG_COMPLETION_MODE), "DOWNLOAD");
   }
 
   @Test

@@ -70,5 +70,8 @@ public class PinotTableSpec {
   @Optional private Config routingConfig;
 
   // Field configs
-  @Optional private List<String> textIndexColumns;
+  @Optional private List<Config> textIndexConfigs;
+
+  // Completion Config for realtime table config
+  @Optional private Config completionConfig;
 }

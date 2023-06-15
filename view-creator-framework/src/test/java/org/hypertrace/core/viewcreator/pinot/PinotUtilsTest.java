@@ -10,7 +10,7 @@ import static org.hypertrace.core.viewcreator.pinot.PinotUtils.getPinotOfflineTa
 import static org.hypertrace.core.viewcreator.pinot.PinotUtils.getPinotRealtimeTableSpec;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typesafe.config.ConfigFactory;
@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.apache.pinot.spi.config.table.ColumnPartitionConfig;
+import org.apache.pinot.spi.config.table.CompletionConfig;
 import org.apache.pinot.spi.config.table.FieldConfig;
 import org.apache.pinot.spi.config.table.FieldConfig.EncodingType;
 import org.apache.pinot.spi.config.table.FieldConfig.IndexType;
@@ -240,7 +241,13 @@ public class PinotUtilsTest {
     assertEquals("response_body", fieldConfig.getName());
     assertEquals(EncodingType.RAW, fieldConfig.getEncodingType());
     assertEquals(IndexType.TEXT, fieldConfig.getIndexType());
-    assertNull(fieldConfig.getProperties());
+    assertEquals(fieldConfig.getProperties().get("fstType"), "lucene");
+    assertEquals(fieldConfig.getProperties().get("skipExistingSegments"), "true");
+
+    // verify completion configs
+    CompletionConfig completionConfig = tableConfig.getValidationConfig().getCompletionConfig();
+    assertNotNull(completionConfig);
+    assertEquals(completionConfig.getCompletionMode(), "DOWNLOAD");
   }
 
   @Test
