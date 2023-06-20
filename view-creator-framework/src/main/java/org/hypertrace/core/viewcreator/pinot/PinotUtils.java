@@ -361,7 +361,6 @@ public class PinotUtils {
             .setRoutingConfig(toRoutingConfig(pinotTableSpec.getRoutingConfig()))
             // setCompletionConfig
             .setCompletionConfig(toCompletionConfig(pinotTableSpec));
-    // setCompletionConfig
 
     if (tableType == TableType.REALTIME) {
       // Stream configs only for REALTIME
