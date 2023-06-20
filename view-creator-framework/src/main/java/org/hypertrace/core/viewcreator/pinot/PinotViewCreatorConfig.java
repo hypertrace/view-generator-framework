@@ -58,10 +58,6 @@ public class PinotViewCreatorConfig {
   /////////////
   public static final String PINOT_REST_URI_TABLES = "tables";
 
-  // text index config keys
-  public static final String TEXT_INDEX_CONFIG_COLUMN = "column";
-  public static final String TEXT_INDEX_CONFIG_SKIP_PRIOR_SEGMENTS = "skipPriorSegments";
-
   // completion config keys
   public static final String COMPLETION_CONFIG_COMPLETION_MODE = "completionMode";
 }

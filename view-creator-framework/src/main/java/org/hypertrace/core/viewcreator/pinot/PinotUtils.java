@@ -25,8 +25,6 @@ import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.SIMPL
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_CONSUMER_TYPE_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_DECODER_CLASS_NAME_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.STREAM_KAFKA_DECODER_PROP_SCHEMA_KEY;
-import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.TEXT_INDEX_CONFIG_COLUMN;
-import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.TEXT_INDEX_CONFIG_SKIP_PRIOR_SEGMENTS;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -506,33 +504,33 @@ public class PinotUtils {
   }
 
   private static List<FieldConfig> toFieldConfigs(@Nullable PinotTableSpec tableSpec) {
-    if (tableSpec == null || tableSpec.getTextIndexConfigs() == null) {
+    if (tableSpec == null || tableSpec.getFieldConfigs() == null) {
       return null;
     }
 
-    return tableSpec.getTextIndexConfigs().stream()
-        .map(
-            textIndexConfig -> {
-              String columnName = textIndexConfig.getString(TEXT_INDEX_CONFIG_COLUMN);
-              FieldConfig fieldConfig =
-                  new FieldConfig(columnName, EncodingType.RAW, IndexType.TEXT, null);
-              if (textIndexConfig.hasPath(TEXT_INDEX_CONFIG_SKIP_PRIOR_SEGMENTS)) {
-                boolean skipPriorSegments =
-                    textIndexConfig.getBoolean(TEXT_INDEX_CONFIG_SKIP_PRIOR_SEGMENTS);
-                fieldConfig =
-                    new FieldConfig(
-                        columnName,
-                        EncodingType.RAW,
-                        IndexType.TEXT,
-                        Map.of(
-                            "fstType",
-                            "lucene",
-                            "skipExistingSegments",
-                            String.valueOf(skipPriorSegments)));
-              }
-              return fieldConfig;
-            })
+    return tableSpec.getFieldConfigs().stream()
+        .map(PinotUtils::toFieldConfig)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  private static FieldConfig toFieldConfig(Config config) {
+    String columnName = config.getString("name");
+    FieldConfig.EncodingType encodingType =
+        config.hasPath("encodingType")
+            ? config.getEnum(FieldConfig.EncodingType.class, "encodingType")
+            : EncodingType.RAW;
+    FieldConfig.IndexType indexType =
+        config.hasPath("indexType")
+            ? config.getEnum(FieldConfig.IndexType.class, "indexType")
+            : IndexType.TEXT;
+    Map<String, String> properties =
+        config.hasPath("properties")
+            ? config.getObject("properties").entrySet().stream()
+                .collect(
+                    Collectors.toMap(
+                        Map.Entry::getKey, entry -> (String) entry.getValue().unwrapped()))
+            : null;
+    return new FieldConfig(columnName, encodingType, indexType, properties);
   }
 
   private static TableTaskConfig toTableTaskConfig(@Nullable Config allTasksConfigs) {
