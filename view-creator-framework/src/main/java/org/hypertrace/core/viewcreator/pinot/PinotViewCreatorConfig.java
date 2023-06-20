@@ -57,4 +57,7 @@ public class PinotViewCreatorConfig {
   // REST API
   /////////////
   public static final String PINOT_REST_URI_TABLES = "tables";
+
+  // completion config keys
+  public static final String COMPLETION_CONFIG_COMPLETION_MODE = "completionMode";
 }

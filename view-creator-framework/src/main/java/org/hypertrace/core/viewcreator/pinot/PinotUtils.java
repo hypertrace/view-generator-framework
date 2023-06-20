@@ -3,6 +3,7 @@ package org.hypertrace.core.viewcreator.pinot;
 import static com.google.common.collect.Maps.newHashMap;
 import static java.net.HttpURLConnection.HTTP_CONFLICT;
 import static java.net.HttpURLConnection.HTTP_OK;
+import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.COMPLETION_CONFIG_COMPLETION_MODE;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_CONFIGS_KEY;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_FILTER_FUNCTION;
 import static org.hypertrace.core.viewcreator.pinot.PinotViewCreatorConfig.PINOT_OFFLINE_CONFIGS_KEY;
@@ -55,6 +56,7 @@ import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.apache.pinot.plugin.inputformat.avro.AvroUtils;
 import org.apache.pinot.spi.config.table.ColumnPartitionConfig;
+import org.apache.pinot.spi.config.table.CompletionConfig;
 import org.apache.pinot.spi.config.table.FieldConfig;
 import org.apache.pinot.spi.config.table.FieldConfig.EncodingType;
 import org.apache.pinot.spi.config.table.FieldConfig.IndexType;
@@ -356,7 +358,9 @@ public class PinotUtils {
             // ingestion configurations
             .setIngestionConfig(toTableIngestionConfig(pinotTableSpec))
             // routing and instance assignment config
-            .setRoutingConfig(toRoutingConfig(pinotTableSpec.getRoutingConfig()));
+            .setRoutingConfig(toRoutingConfig(pinotTableSpec.getRoutingConfig()))
+            // setCompletionConfig
+            .setCompletionConfig(toCompletionConfig(pinotTableSpec));
 
     if (tableType == TableType.REALTIME) {
       // Stream configs only for REALTIME
@@ -388,6 +392,17 @@ public class PinotUtils {
     String instanceSelectorType = getOptionalString(routingConfig, "instanceSelectorType", null);
     if (segmentPrunerTypes != null || instanceSelectorType != null) {
       return new RoutingConfig(null, segmentPrunerTypes, instanceSelectorType);
+    }
+    return null;
+  }
+
+  private static CompletionConfig toCompletionConfig(@Nullable PinotTableSpec tableSpec) {
+    if (tableSpec == null || tableSpec.getCompletionConfig() == null) {
+      return null;
+    }
+    Config completionConfig = tableSpec.getCompletionConfig();
+    if (completionConfig.hasPath(COMPLETION_CONFIG_COMPLETION_MODE)) {
+      return new CompletionConfig(completionConfig.getString(COMPLETION_CONFIG_COMPLETION_MODE));
     }
     return null;
   }
@@ -488,13 +503,33 @@ public class PinotUtils {
   }
 
   private static List<FieldConfig> toFieldConfigs(@Nullable PinotTableSpec tableSpec) {
-    if (tableSpec == null || tableSpec.getTextIndexColumns() == null) {
+    if (tableSpec == null || tableSpec.getFieldConfigs() == null) {
       return null;
     }
 
-    return tableSpec.getTextIndexColumns().stream()
-        .map(columnName -> new FieldConfig(columnName, EncodingType.RAW, IndexType.TEXT, null))
+    return tableSpec.getFieldConfigs().stream()
+        .map(PinotUtils::toFieldConfig)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  private static FieldConfig toFieldConfig(Config config) {
+    String columnName = config.getString("name");
+    FieldConfig.EncodingType encodingType =
+        config.hasPath("encodingType")
+            ? config.getEnum(FieldConfig.EncodingType.class, "encodingType")
+            : EncodingType.RAW;
+    FieldConfig.IndexType indexType =
+        config.hasPath("indexType")
+            ? config.getEnum(FieldConfig.IndexType.class, "indexType")
+            : IndexType.TEXT;
+    Map<String, String> properties =
+        config.hasPath("properties")
+            ? config.getObject("properties").entrySet().stream()
+                .collect(
+                    Collectors.toMap(
+                        Map.Entry::getKey, entry -> (String) entry.getValue().unwrapped()))
+            : null;
+    return new FieldConfig(columnName, encodingType, indexType, properties);
   }
 
   private static TableTaskConfig toTableTaskConfig(@Nullable Config allTasksConfigs) {
