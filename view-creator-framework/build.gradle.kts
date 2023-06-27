@@ -12,8 +12,18 @@ tasks.test {
 
 dependencies {
   implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.53")
+  implementation(platform("io.grpc:grpc-bom:1.56.0"))
   constraints {
     implementation("io.netty:netty-all:4.1.94.Final")
+    implementation("org.xerial.snappy:snappy-java:1.1.10.1") {
+      because("[https://nvd.nist.gov/vuln/detail/CVE-2023-34455] in 'org.apache.kafka:kafka-clients:*'")
+    }
+    implementation("com.google.protobuf:protobuf-java-util:3.21.7") {
+      because("https://nvd.nist.gov/vuln/detail/CVE-2022-3171")
+    }
+    implementation("org.glassfish.jersey.core:jersey-common:2.40") {
+      because("https://nvd.nist.gov/vuln/detail/CVE-2021-28168")
+    }
   }
 
   implementation("org.apache.avro:avro:1.11.1")
@@ -25,7 +35,7 @@ dependencies {
       because("https://snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-30078")
     }
   }
-  implementation("org.apache.pinot:pinot-tools:0.7.1") {
+  implementation("org.apache.pinot:pinot-tools:0.12.1") {
     // All these third party libraries are not used in view creation workflow.
     // They bring in lot of vulnerabilities (snyk). so, excluding unused libs
     exclude("com.google.protobuf", "protobuf-java")

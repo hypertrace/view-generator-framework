@@ -3,16 +3,9 @@
   <suppress>
     <notes><![CDATA[
    file name: grpc-client-utils-0.12.0.jar
-   ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.hypertrace\.core\.grpcutils/grpc\-client\-utils@.*$</packageUrl>
-    <cpe>cpe:/a:grpc:grpc</cpe>
-  </suppress>
-
-  <suppress>
-    <notes><![CDATA[
    file name: grpc-context-utils-0.12.0.jar
    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.hypertrace\.core\.grpcutils/grpc\-context\-utils@.*$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/org\.hypertrace\.core\.grpcutils/.*@.*$</packageUrl>
     <cpe>cpe:/a:grpc:grpc</cpe>
   </suppress>
 
@@ -23,4 +16,39 @@
     <packageUrl regex="true">^pkg:maven/org\.hypertrace\.core\.grpcutils/grpc\-context\-utils@.*$</packageUrl>
     <cpe>cpe:/a:utils_project:utils</cpe>
   </suppress>
+
+  <suppress>
+    <notes><![CDATA[
+   file name: pinot-avro-0.12.1.jar
+   file name: pinot-avro-base-0.12.1.jar
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.pinot/pinot\-avro.*@.*$</packageUrl>
+    <cpe>cpe:/a:apache:avro</cpe>
+  </suppress>
+
+  <suppress>
+    <notes><![CDATA[
+   file name: pinot-minion-builtin-tasks-0.12.1.jar
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.pinot/pinot\-minion\-builtin\-tasks@.*$</packageUrl>
+    <cpe>cpe:/a:tasks:tasks</cpe>
+  </suppress>
+
+  <suppress>
+    <notes><![CDATA[
+   file name: pinot-thrift-0.12.1.jar
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.pinot/pinot\-thrift@.*$</packageUrl>
+    <cpe>cpe:/a:apache:thrift</cpe>
+  </suppress>
+
+  <!-- Disputed vulnerability -->
+  <suppress>
+    <notes><![CDATA[
+   file name: jackson-databind-2.14.2.jar
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
+    <cve>CVE-2023-35116</cve>
+  </suppress>
+
 </suppressions>
