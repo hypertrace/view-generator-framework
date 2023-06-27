@@ -11,9 +11,9 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.43")
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.53")
   constraints {
-    implementation("io.netty:netty-all:4.1.89.Final")
+    implementation("io.netty:netty-all:4.1.94.Final")
   }
 
   implementation("org.apache.avro:avro:1.11.1")
