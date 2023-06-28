@@ -83,4 +83,29 @@
     <packageUrl regex="true">^pkg:maven/com\.squareup\.wire/wire\-schema@.*$</packageUrl>
     <cpe>cpe:/a:wire:wire</cpe>
   </suppress>
+
+  <!-- This is the final version, and its coming via transitive dep. -->
+  <suppress>
+    <notes><![CDATA[
+   file name: commons-httpclient-3.1.jar
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/commons\-httpclient/commons\-httpclient@.*$</packageUrl>
+    <cpe>cpe:/a:apache:commons-httpclient</cpe>
+  </suppress>
+
+  <suppress>
+    <notes><![CDATA[
+   file name: spark-launcher_2.12-3.2.1.jar
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.spark/spark\-launcher_2\.12@.*$</packageUrl>
+    <cpe>cpe:/a:apache:spark</cpe>
+  </suppress>
+  
+  <suppress>
+    <notes><![CDATA[
+   file name: wire-runtime-3.2.2.jar
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.squareup\.wire/wire\-runtime@.*$</packageUrl>
+    <cpe>cpe:/a:wire:wire</cpe>
+  </suppress>
 </suppressions>
