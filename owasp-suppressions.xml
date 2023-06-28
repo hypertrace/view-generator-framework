@@ -84,13 +84,13 @@
     <cpe>cpe:/a:wire:wire</cpe>
   </suppress>
 
-  <!-- This is the final version, and its coming via transitive dep. -->
+  <!-- No upgrade version available -->
   <suppress>
     <notes><![CDATA[
    file name: commons-httpclient-3.1.jar
    ]]></notes>
     <packageUrl regex="true">^pkg:maven/commons\-httpclient/commons\-httpclient@.*$</packageUrl>
-    <cpe>cpe:/a:apache:commons-httpclient</cpe>
+    <cve>CVE-2012-5783</cve>
   </suppress>
 
   <suppress>
@@ -98,7 +98,7 @@
    file name: commons-httpclient-3.1.jar
    ]]></notes>
     <packageUrl regex="true">^pkg:maven/commons\-httpclient/commons\-httpclient@.*$</packageUrl>
-    <cpe>cpe:/a:apache:httpclient</cpe>
+    <cve>CVE-2020-13956</cve>
   </suppress>
 
   <suppress>
