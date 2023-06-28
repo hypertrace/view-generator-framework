@@ -79,7 +79,6 @@ import org.apache.pinot.spi.data.FieldSpec.DataType;
 import org.apache.pinot.spi.data.MetricFieldSpec;
 import org.apache.pinot.spi.data.Schema;
 import org.apache.pinot.spi.utils.builder.TableConfigBuilder;
-import org.apache.pinot.tools.admin.command.AddSchemaCommand;
 import org.hypertrace.core.serviceframework.config.ConfigUtils;
 import org.hypertrace.core.viewcreator.ViewCreationSpec;
 import org.slf4j.Logger;
@@ -162,7 +161,7 @@ public class PinotUtils {
       writer.write(pinotSchemaFromAvroSchema.toPrettyJsonString());
       writer.flush();
       writer.close();
-      return new AddSchemaCommand()
+      return new PinotAddSchemaCommand()
           .setControllerHost(controllerHost)
           .setControllerPort(controllerPort)
           .setSchemaFilePath(tmpFile.getPath())
