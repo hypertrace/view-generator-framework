@@ -56,7 +56,7 @@
    file name: calcite-babel-1.29.0.jar
    ]]></notes>
     <packageUrl regex="true">^pkg:maven/org\.apache\.calcite/calcite\-babel@.*$</packageUrl>
-    <cpe>cpe:/a:apache:calcite</cpe>
+    <cve>CVE-2022-39135</cve>
   </suppress>
 
   <suppress>
@@ -91,6 +91,14 @@
    ]]></notes>
     <packageUrl regex="true">^pkg:maven/commons\-httpclient/commons\-httpclient@.*$</packageUrl>
     <cpe>cpe:/a:apache:commons-httpclient</cpe>
+  </suppress>
+
+  <suppress>
+    <notes><![CDATA[
+   file name: commons-httpclient-3.1.jar
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/commons\-httpclient/commons\-httpclient@.*$</packageUrl>
+    <cpe>cpe:/a:apache:httpclient</cpe>
   </suppress>
 
   <suppress>
