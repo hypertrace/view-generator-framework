@@ -41,7 +41,6 @@ dependencies {
     exclude("com.google.protobuf", "protobuf-java")
     exclude("com.jayway.jsonpath", "json-path")
     exclude("commons-codec", "commons-codec")
-    exclude("commons-httpclient", "commons-httpclient")
     exclude("commons-io", "commons-io")
     exclude("io.grpc", "grpc-netty-shaded")
     exclude("io.netty", "netty")
