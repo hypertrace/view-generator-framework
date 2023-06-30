@@ -11,33 +11,19 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.43")
-  constraints {
-    implementation("io.netty:netty-all:4.1.89.Final")
-  }
-
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.54")
+  implementation(platform("io.grpc:grpc-bom:1.56.0"))
   implementation("org.apache.avro:avro:1.11.1")
-  constraints {
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2") {
-      because("version 2.12.7.1 has a vulnerability https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-3038424")
-    }
-    implementation("commons-collections:commons-collections:3.2.2") {
-      because("https://snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-30078")
-    }
-  }
-  implementation("org.apache.pinot:pinot-tools:0.7.1") {
+  implementation("org.apache.pinot:pinot-tools:0.12.1") {
     // All these third party libraries are not used in view creation workflow.
     // They bring in lot of vulnerabilities (snyk). so, excluding unused libs
     exclude("com.google.protobuf", "protobuf-java")
     exclude("com.jayway.jsonpath", "json-path")
     exclude("commons-codec", "commons-codec")
-    exclude("commons-httpclient", "commons-httpclient")
     exclude("commons-io", "commons-io")
     exclude("io.grpc", "grpc-netty-shaded")
     exclude("io.netty", "netty")
     exclude("javax.servlet", "javax.servlet-api")
-    exclude("org.apache.calcite", "calcite-core")
-    exclude("org.apache.calcite.avatica", "avatica-core")
     exclude("org.apache.hadoop", "hadoop-common")
     exclude("org.apache.hadoop", "hadoop-hdfs")
     exclude("org.apache.helix", "helix-core")
@@ -62,12 +48,17 @@ dependencies {
   }
 
   constraints {
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.2.2") {
-      because("Denial of Service (DoS) [High Severity]" +
-              "[https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-2421244] " +
-              "in com.fasterxml.jackson.core:jackson-databind@2.13.1")
-    }
+    implementation("org.apache.calcite:calcite-core:1.34.0")
+    implementation("org.apache.calcite:calcite-babel:1.34.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("org.apache.spark:spark-launcher_2.12:3.4.1")
+    implementation("org.xerial.snappy:snappy-java:1.1.10.1")
+    implementation("com.google.protobuf:protobuf-java-util:3.16.3")
+    implementation("org.codehaus.janino:janino:3.1.9")
   }
+  implementation(platform("io.netty:netty-bom:4.1.94.Final"))
+  implementation(platform("org.glassfish.jersey:jersey-bom:2.40"))
+  implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.6.21"))
 
   compileOnly("org.projectlombok:lombok:1.18.24")
   annotationProcessor("org.projectlombok:lombok:1.18.24")

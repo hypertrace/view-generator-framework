@@ -72,17 +72,13 @@ import org.apache.pinot.spi.config.table.ingestion.FilterConfig;
 import org.apache.pinot.spi.config.table.ingestion.IngestionConfig;
 import org.apache.pinot.spi.config.table.ingestion.TransformConfig;
 import org.apache.pinot.spi.data.DateTimeFieldSpec;
-import org.apache.pinot.spi.data.DateTimeFieldSpec.TimeFormat;
 import org.apache.pinot.spi.data.DateTimeFormatSpec;
-import org.apache.pinot.spi.data.DateTimeFormatUnitSpec;
-import org.apache.pinot.spi.data.DateTimeGranularitySpec;
 import org.apache.pinot.spi.data.DimensionFieldSpec;
 import org.apache.pinot.spi.data.FieldSpec;
 import org.apache.pinot.spi.data.FieldSpec.DataType;
 import org.apache.pinot.spi.data.MetricFieldSpec;
 import org.apache.pinot.spi.data.Schema;
 import org.apache.pinot.spi.utils.builder.TableConfigBuilder;
-import org.apache.pinot.tools.admin.command.AddSchemaCommand;
 import org.hypertrace.core.serviceframework.config.ConfigUtils;
 import org.hypertrace.core.viewcreator.ViewCreationSpec;
 import org.slf4j.Logger;
@@ -165,7 +161,7 @@ public class PinotUtils {
       writer.write(pinotSchemaFromAvroSchema.toPrettyJsonString());
       writer.flush();
       writer.close();
-      return new AddSchemaCommand()
+      return new PinotAddSchemaCommand()
           .setControllerHost(controllerHost)
           .setControllerPort(controllerPort)
           .setSchemaFilePath(tmpFile.getPath())
@@ -215,29 +211,42 @@ public class PinotUtils {
         fieldSpecs.add(fieldSpec);
       } else if (timeColumn.equals(field.name())) {
         validateDateTimeColumn(field, timeUnit);
+        DateTimeFormatSpec dateTimeFormatSpec = DateTimeFormatSpec.forEpoch(timeUnit.name());
+        String dataTimeFormatStr =
+            String.format(
+                "%s:%s:%s",
+                dateTimeFormatSpec.getColumnSize(),
+                dateTimeFormatSpec.getColumnUnit().name(),
+                dateTimeFormatSpec.getTimeFormat().name());
+        String granularityStr =
+            String.format(
+                "%s:%s",
+                dateTimeFormatSpec.getColumnSize(), dateTimeFormatSpec.getColumnUnit().name());
         fieldSpec =
             new DateTimeFieldSpec(
                 field.name(),
                 AvroUtils.extractFieldDataType(field),
-                new DateTimeFormatSpec(1, timeUnit.name(), TimeFormat.EPOCH.name()).getFormat(),
-                new DateTimeGranularitySpec(1, timeUnit).getGranularity());
+                dataTimeFormatStr,
+                granularityStr);
         fieldSpecs.add(fieldSpec);
       } else if (dateTimeColumns.contains(field.name())) {
         // No way to specify unit type or rich time formats. So, hard coding all date time columns
         // to be millis
         validateDateTimeColumn(field, TimeUnit.MILLISECONDS);
+        DateTimeFormatSpec dateTimeFormatSpec =
+            DateTimeFormatSpec.forEpoch(1, TimeUnit.MILLISECONDS.name());
         fieldSpec =
             new DateTimeFieldSpec(
                 field.name(),
                 AvroUtils.extractFieldDataType(field),
-                new DateTimeFormatSpec(
-                        1,
-                        new DateTimeFormatUnitSpec(TimeUnit.MILLISECONDS.toString())
-                            .getDateTimeTransformUnit()
-                            .name(),
-                        TimeFormat.EPOCH.name())
-                    .getFormat(),
-                new DateTimeGranularitySpec(1, TimeUnit.MILLISECONDS).getGranularity());
+                String.format(
+                    "%s:%s:%s",
+                    dateTimeFormatSpec.getColumnSize(),
+                    dateTimeFormatSpec.getColumnUnit().name(),
+                    dateTimeFormatSpec.getTimeFormat().name()),
+                String.format(
+                    "%s:%s",
+                    dateTimeFormatSpec.getColumnSize(), dateTimeFormatSpec.getColumnUnit().name()));
         fieldSpecs.add(fieldSpec);
       } else if (dimensionColumns.contains(field.name())) {
         fieldSpec =
@@ -468,7 +477,7 @@ public class PinotUtils {
       tableFilterConfig = new FilterConfig(filterConfig.getString(PINOT_FILTER_FUNCTION));
     }
 
-    return new IngestionConfig(null, null, tableFilterConfig, tableTransformConfigs);
+    return new IngestionConfig(null, null, tableFilterConfig, tableTransformConfigs, null, null);
   }
 
   private static TagOverrideConfig toTagOverrideConfig(Config tenantTagOverrideConfig) {
@@ -495,8 +504,11 @@ public class PinotUtils {
                 tierConfig.getString(PINOT_TIER_NAME),
                 tierConfig.getString(PINOT_TIER_SEGMENT_SELECTOR_TYPE),
                 getOptionalString(tierConfig, PINOT_TIER_SEGMENT_AGE, null),
+                null,
                 tierConfig.getString(PINOT_TIER_STORAGE_TYPE),
-                getOptionalString(tierConfig, PINOT_TIER_SERVER_TAG, null)));
+                getOptionalString(tierConfig, PINOT_TIER_SERVER_TAG, null),
+                null,
+                null));
       }
     }
     return tableTierConfigs;
@@ -529,7 +541,7 @@ public class PinotUtils {
                     Collectors.toMap(
                         Map.Entry::getKey, entry -> (String) entry.getValue().unwrapped()))
             : null;
-    return new FieldConfig(columnName, encodingType, indexType, properties);
+    return new FieldConfig(columnName, encodingType, indexType, null, properties);
   }
 
   private static TableTaskConfig toTableTaskConfig(@Nullable Config allTasksConfigs) {
