@@ -11,7 +11,7 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.53")
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.54")
   implementation(platform("io.grpc:grpc-bom:1.56.0"))
   implementation("org.apache.avro:avro:1.11.1")
   implementation("org.apache.pinot:pinot-tools:0.12.1") {
