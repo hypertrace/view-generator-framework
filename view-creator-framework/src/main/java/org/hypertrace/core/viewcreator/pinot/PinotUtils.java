@@ -216,13 +216,12 @@ public class PinotUtils {
             String.format(
                 "%s:%s:%s",
                 dateTimeFormatSpec.getColumnSize(),
-                dateTimeFormatSpec.getColumnDateTimeTransformUnit().name(),
+                dateTimeFormatSpec.getColumnUnit().name(),
                 dateTimeFormatSpec.getTimeFormat().name());
         String granularityStr =
             String.format(
                 "%s:%s",
-                dateTimeFormatSpec.getColumnSize(),
-                dateTimeFormatSpec.getColumnDateTimeTransformUnit().name());
+                dateTimeFormatSpec.getColumnSize(), dateTimeFormatSpec.getColumnUnit().name());
         fieldSpec =
             new DateTimeFieldSpec(
                 field.name(),
@@ -243,12 +242,11 @@ public class PinotUtils {
                 String.format(
                     "%s:%s:%s",
                     dateTimeFormatSpec.getColumnSize(),
-                    dateTimeFormatSpec.getColumnDateTimeTransformUnit().name(),
+                    dateTimeFormatSpec.getColumnUnit().name(),
                     dateTimeFormatSpec.getTimeFormat().name()),
                 String.format(
                     "%s:%s",
-                    dateTimeFormatSpec.getColumnSize(),
-                    dateTimeFormatSpec.getColumnDateTimeTransformUnit().name()));
+                    dateTimeFormatSpec.getColumnSize(), dateTimeFormatSpec.getColumnUnit().name()));
         fieldSpecs.add(fieldSpec);
       } else if (dimensionColumns.contains(field.name())) {
         fieldSpec =
