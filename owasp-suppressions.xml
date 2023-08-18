@@ -68,4 +68,46 @@
     <cve>CVE-2012-5783</cve>
     <cve>CVE-2020-13956</cve>
   </suppress>
+  <suppress until="2023-08-30Z">
+    <notes><![CDATA[
+   Not yet fixed in quartz. file name: quartz-2.3.2.jar
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.quartz\-scheduler/quartz@.*$</packageUrl>
+    <cve>CVE-2023-39017</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+   file name: pinot-avro-0.12.1.jar. Affects only go projects
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.pinot/pinot\-avro@.*$</packageUrl>
+    <cve>CVE-2023-37475</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+   file name: pinot-avro-base-0.12.1.jar. Affects only go projects
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.pinot/pinot\-avro\-base@.*$</packageUrl>
+    <cve>CVE-2023-37475</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+   file name: avro-partitioners-0.2.13.jar. Affects only go projects
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.hypertrace\.core\.kafkastreams\.framework/avro\-partitioners@.*$</packageUrl>
+    <cve>CVE-2023-37475</cve>
+  </suppress>
+  <suppress until="2023-08-30Z">
+    <notes><![CDATA[
+   file name: janino-3.1.9.jar. Pinot is yet to upgrade to latest version. Revisit.
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.codehaus\.janino/janino@.*$</packageUrl>
+    <cve>CVE-2023-33546</cve>
+  </suppress>
+  <suppress until="2023-08-30Z">
+    <notes><![CDATA[
+   file name: commons-compiler-3.1.9.jar. Pinot is yet to upgrade to latest version. Revisit.
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.codehaus\.janino/commons\-compiler@.*$</packageUrl>
+    <cve>CVE-2023-33546</cve>
+  </suppress>
 </suppressions>

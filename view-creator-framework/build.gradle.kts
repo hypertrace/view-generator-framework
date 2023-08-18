@@ -12,7 +12,7 @@ tasks.test {
 
 dependencies {
   implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.54")
-  implementation(platform("io.grpc:grpc-bom:1.56.0"))
+  implementation(platform("io.grpc:grpc-bom:1.57.2"))
   implementation("org.apache.avro:avro:1.11.1")
   implementation("org.apache.pinot:pinot-tools:0.12.1") {
     // All these third party libraries are not used in view creation workflow.
