@@ -14,6 +14,7 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.Produced;
 import org.hypertrace.core.kafkastreams.framework.KafkaStreamsApp;
 import org.hypertrace.core.kafkastreams.framework.partitioner.AvroFieldValuePartitioner;
@@ -54,14 +55,16 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
       KStream<String, Object> inputStream = (KStream<String, Object>) inputStreams.get(topic);
 
       if (inputStream == null) {
-        inputStream = streamsBuilder.stream(topic, Consumed.with(Serdes.String(), null));
+        inputStream =
+            streamsBuilder.stream(
+                topic, Consumed.with(Serdes.String(), null).withName("source-" + topic));
         inputStreams.put(topic, inputStream);
       }
 
       if (mergedStream == null) {
         mergedStream = inputStream;
       } else {
-        mergedStream = mergedStream.merge(inputStream);
+        mergedStream = mergedStream.merge(inputStream, Named.as("merged-stream"));
       }
     }
 
@@ -80,11 +83,12 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
     }
 
     mergedStream
-        .flatTransform(() -> new ViewGenerationProcessTransformer(getJobConfigKey()))
+        .process(() -> new ViewGenerationProcessor(getJobConfigKey()))
         .to(
             outputTopic,
             Produced.with(
-                Serdes.String(), producerValueSerde, getPartitioner(properties, outputTopic)));
+                    Serdes.String(), producerValueSerde, getPartitioner(properties, outputTopic))
+                .withName("sink-" + outputTopic));
     return streamsBuilder;
   }
 

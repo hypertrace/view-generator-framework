@@ -6,12 +6,12 @@ import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.O
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.VIEW_GENERATORS_CONFIG;
 
 import com.typesafe.config.Config;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.KStream;
 import org.hypertrace.core.kafkastreams.framework.KafkaStreamsApp;
@@ -20,7 +20,7 @@ import org.hypertrace.core.serviceframework.config.ConfigClientFactory;
 import org.hypertrace.core.serviceframework.config.ConfigUtils;
 
 public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
-  private Map<String, Config> viewGenConfigs;
+  private final Map<String, Config> viewGenConfigs;
 
   public MultiViewGeneratorLauncher(ConfigClient configClient) {
     super(configClient);
@@ -66,7 +66,7 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
       Config viewGenConfig = viewGenConfigs.get(viewGen);
       inputTopics.addAll(viewGenConfig.getStringList(INPUT_TOPICS_CONFIG_KEY));
     }
-    return inputTopics.stream().collect(Collectors.toList());
+    return new ArrayList<>(inputTopics);
   }
 
   @Override
@@ -77,7 +77,7 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
       Config viewGenConfig = viewGenConfigs.get(viewGen);
       outputTopics.add(viewGenConfig.getString(OUTPUT_TOPIC_CONFIG_KEY));
     }
-    return outputTopics.stream().collect(Collectors.toList());
+    return new ArrayList<>(outputTopics);
   }
 
   private Config getJobConfig(Map<String, Object> properties) {

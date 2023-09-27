@@ -3,18 +3,17 @@ package org.hypertrace.core.viewgenerator.service;
 import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.*;
 
 import com.typesafe.config.Config;
-import java.util.ArrayList;
+import java.time.Instant;
 import java.util.List;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.specific.SpecificRecord;
-import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.kstream.Transformer;
-import org.apache.kafka.streams.processor.ProcessorContext;
-import org.apache.kafka.streams.processor.To;
+import org.apache.kafka.streams.processor.api.Processor;
+import org.apache.kafka.streams.processor.api.ProcessorContext;
+import org.apache.kafka.streams.processor.api.Record;
 import org.hypertrace.core.viewgenerator.JavaCodeBasedViewGenerator;
 
-public class ViewGenerationProcessTransformer<IN extends SpecificRecord, OUT extends GenericRecord>
-    implements Transformer<String, IN, List<KeyValue<String, OUT>>> {
+public class ViewGenerationProcessor<IN extends SpecificRecord, OUT extends GenericRecord>
+    implements Processor<String, IN, String, OUT> {
 
   private final String viewGenName;
 
@@ -22,20 +21,16 @@ public class ViewGenerationProcessTransformer<IN extends SpecificRecord, OUT ext
   private String viewgenClassName;
   private Class<OUT> viewClass;
   private JavaCodeBasedViewGenerator<IN, OUT> viewGenerator;
-  private ProcessorContext context;
-  private To outputTopic;
+  private ProcessorContext<String, OUT> context;
 
-  public ViewGenerationProcessTransformer(String viewGenName) {
+  public ViewGenerationProcessor(String viewGenName) {
     this.viewGenName = viewGenName;
   }
 
   @Override
-  public void init(ProcessorContext context) {
+  public void init(ProcessorContext<String, OUT> context) {
     this.context = context;
     this.jobConfig = (Config) context.appConfigs().get(this.viewGenName);
-
-    String outputTopicName = jobConfig.getString(OUTPUT_TOPIC_CONFIG_KEY);
-    this.outputTopic = To.child(outputTopicName);
 
     this.viewgenClassName = jobConfig.getString(VIEW_GENERATOR_CLASS_CONFIG_KEY);
     try {
@@ -48,15 +43,14 @@ public class ViewGenerationProcessTransformer<IN extends SpecificRecord, OUT ext
   }
 
   @Override
-  public List<KeyValue<String, OUT>> transform(String key, IN value) {
-    List<KeyValue<String, OUT>> outputKVPairs = new ArrayList<>();
-    List<OUT> output = viewGenerator.process(value);
+  public void process(Record<String, IN> record) {
+    long nowMillis = Instant.now().toEpochMilli();
+    List<OUT> output = viewGenerator.process(record.value());
     if (output != null) {
       for (OUT out : output) {
-        outputKVPairs.add(KeyValue.pair(key, out));
+        context.forward(new Record<>(record.key(), out, nowMillis));
       }
     }
-    return outputKVPairs;
   }
 
   @Override
