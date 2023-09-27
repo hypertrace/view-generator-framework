@@ -62,7 +62,7 @@ public class PinotUtilsTest {
     LOGGER.info("Convert Pinot Schema from View: {}", pinotSchema);
     assertEquals(viewCreationSpec.getViewName(), pinotSchema.getSchemaName());
     // creation_time_millis not included in dimension columns
-    assertEquals(5, pinotSchema.getDimensionNames().size());
+    assertEquals(6, pinotSchema.getDimensionNames().size());
     assertEquals(1, pinotSchema.getMetricFieldSpecs().size());
     assertEquals(DataType.STRING, pinotSchema.getDimensionSpec("name").getDataType());
     assertEquals(DataType.BYTES, pinotSchema.getDimensionSpec("id_sha").getDataType());
@@ -101,6 +101,7 @@ public class PinotUtilsTest {
         new DateTimeFormatSpec(dateTimeFieldSpec.getFormat()).getColumnUnit());
     assertEquals(DataType.LONG, dateTimeFieldSpec.getDataType());
     assertEquals(0L, dateTimeFieldSpec.getDefaultNullValue());
+    assertEquals(DataType.BOOLEAN, pinotSchema.getDimensionSpec("is_external").getDataType());
   }
 
   @Test
