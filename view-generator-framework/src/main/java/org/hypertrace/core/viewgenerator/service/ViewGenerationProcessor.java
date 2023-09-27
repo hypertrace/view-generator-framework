@@ -44,9 +44,9 @@ public class ViewGenerationProcessor<IN extends SpecificRecord, OUT extends Gene
 
   @Override
   public void process(Record<String, IN> record) {
-    long nowMillis = Instant.now().toEpochMilli();
     List<OUT> output = viewGenerator.process(record.value());
     if (output != null) {
+      long nowMillis = Instant.now().toEpochMilli();
       for (OUT out : output) {
         context.forward(new Record<>(record.key(), out, nowMillis));
       }

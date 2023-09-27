@@ -11,7 +11,7 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.54")
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.60")
   implementation(platform("io.grpc:grpc-bom:1.57.2"))
   implementation("org.apache.avro:avro:1.11.1")
   implementation("org.apache.pinot:pinot-tools:0.12.1") {
@@ -52,7 +52,7 @@ dependencies {
     implementation("org.apache.calcite:calcite-babel:1.34.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.apache.spark:spark-launcher_2.12:3.4.1")
-    implementation("org.xerial.snappy:snappy-java:1.1.10.1")
+    implementation("org.xerial.snappy:snappy-java:1.1.10.4")
     implementation("com.google.protobuf:protobuf-java-util:3.16.3")
     implementation("org.codehaus.janino:janino:3.1.9")
   }
@@ -60,13 +60,13 @@ dependencies {
   implementation(platform("org.glassfish.jersey:jersey-bom:2.40"))
   implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.6.21"))
 
-  compileOnly("org.projectlombok:lombok:1.18.24")
-  annotationProcessor("org.projectlombok:lombok:1.18.24")
-  implementation("org.slf4j:slf4j-api:1.7.36")
-  implementation("com.typesafe:config:1.4.1")
+  compileOnly("org.projectlombok:lombok:1.18.26")
+  annotationProcessor("org.projectlombok:lombok:1.18.26")
+  implementation("org.slf4j:slf4j-api:2.0.5")
+  implementation("com.typesafe:config:1.4.2")
 
-  testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
-  testImplementation("org.mockito:mockito-core:4.7.0")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+  testImplementation("org.mockito:mockito-core:5.2.0")
 }
 
 // Disabling compatibility check for the test avro definitions.

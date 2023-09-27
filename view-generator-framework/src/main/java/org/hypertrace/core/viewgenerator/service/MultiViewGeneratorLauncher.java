@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.KStream;
 import org.hypertrace.core.kafkastreams.framework.KafkaStreamsApp;
@@ -61,7 +62,7 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
   @Override
   public List<String> getInputTopics(Map<String, Object> properties) {
     List<String> viewGenNames = getViewGenName(properties);
-    Set<String> inputTopics = new HashSet<>();
+    Set<String> inputTopics = new TreeSet<>();
     for (String viewGen : viewGenNames) {
       Config viewGenConfig = viewGenConfigs.get(viewGen);
       inputTopics.addAll(viewGenConfig.getStringList(INPUT_TOPICS_CONFIG_KEY));
@@ -72,7 +73,7 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
   @Override
   public List<String> getOutputTopics(Map<String, Object> properties) {
     List<String> viewGenNames = getViewGenName(properties);
-    Set<String> outputTopics = new HashSet<>();
+    Set<String> outputTopics = new TreeSet<>();
     for (String viewGen : viewGenNames) {
       Config viewGenConfig = viewGenConfigs.get(viewGen);
       outputTopics.add(viewGenConfig.getString(OUTPUT_TOPIC_CONFIG_KEY));

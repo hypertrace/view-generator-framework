@@ -52,7 +52,7 @@
     <cve>CVE-2018-11770</cve>
     <cve>CVE-2018-17190</cve>
   </suppress>
-  <suppress until="2023-07-30Z">
+  <suppress  until="2023-12-31Z">
     <notes><![CDATA[
     Same series of issues that also impacts jackson, vendor disputed and not currently fixed
     https://github.com/janino-compiler/janino/issues/201
@@ -68,7 +68,7 @@
     <cve>CVE-2012-5783</cve>
     <cve>CVE-2020-13956</cve>
   </suppress>
-  <suppress until="2023-08-30Z">
+  <suppress until="2023-12-31Z">
     <notes><![CDATA[
    Not yet fixed in quartz. file name: quartz-2.3.2.jar
    ]]></notes>
@@ -96,18 +96,25 @@
     <packageUrl regex="true">^pkg:maven/org\.hypertrace\.core\.kafkastreams\.framework/avro\-partitioners@.*$</packageUrl>
     <cve>CVE-2023-37475</cve>
   </suppress>
-  <suppress until="2023-08-30Z">
+  <suppress until="2023-12-31Z">
     <notes><![CDATA[
    file name: janino-3.1.9.jar. Pinot is yet to upgrade to latest version. Revisit.
    ]]></notes>
     <packageUrl regex="true">^pkg:maven/org\.codehaus\.janino/janino@.*$</packageUrl>
     <cve>CVE-2023-33546</cve>
   </suppress>
-  <suppress until="2023-08-30Z">
+  <suppress until="2023-12-31Z">
     <notes><![CDATA[
    file name: commons-compiler-3.1.9.jar. Pinot is yet to upgrade to latest version. Revisit.
    ]]></notes>
     <packageUrl regex="true">^pkg:maven/org\.codehaus\.janino/commons\-compiler@.*$</packageUrl>
     <cve>CVE-2023-33546</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+   file name: netty-handler-4.1.94.Final.jar. Pinot is yet to upgrade to latest version. Revisit.
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-handler@.*$</packageUrl>
+    <cve>CVE-2023-4586</cve>
   </suppress>
 </suppressions>
