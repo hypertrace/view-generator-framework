@@ -50,7 +50,7 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
     String outputTopic = jobConfig.getString(OUTPUT_TOPIC_CONFIG_KEY);
 
     KStream<String, Object> mergedStream = null;
-
+    int mergedStreamId = 0;
     for (String topic : inputTopics) {
       KStream<String, Object> inputStream = (KStream<String, Object>) inputStreams.get(topic);
 
@@ -59,12 +59,15 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
             streamsBuilder.stream(
                 topic, Consumed.with(Serdes.String(), null).withName("source-" + topic));
         inputStreams.put(topic, inputStream);
+      }
 
-        if (mergedStream == null) {
-          mergedStream = inputStream;
-        } else {
-          mergedStream = mergedStream.merge(inputStream, Named.as("merged-stream"));
-        }
+      if (mergedStream == null) {
+        mergedStream = inputStream;
+      } else {
+        mergedStream =
+            mergedStream.merge(
+                inputStream, Named.as("merged-stream-" + getViewGenName() + "-" + mergedStreamId));
+        mergedStreamId++;
       }
     }
 
@@ -83,7 +86,9 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
     }
 
     mergedStream
-        .process(() -> new ViewGenerationProcessor(getJobConfigKey()))
+        .process(
+            () -> new ViewGenerationProcessor(getJobConfigKey()),
+            Named.as("processor-" + getViewGenName()))
         .to(
             outputTopic,
             Produced.with(

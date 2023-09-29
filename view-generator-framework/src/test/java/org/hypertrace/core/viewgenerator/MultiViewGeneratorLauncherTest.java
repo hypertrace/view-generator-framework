@@ -19,6 +19,7 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.hypertrace.core.kafkastreams.framework.serdes.AvroSerde;
 import org.hypertrace.core.serviceframework.config.ConfigClientFactory;
@@ -29,8 +30,12 @@ import org.hypertrace.core.viewgenerator.test.api.SpanTypeTwo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.SetEnvironmentVariable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MultiViewGeneratorLauncherTest {
+  private static final Logger logger =
+      LoggerFactory.getLogger(MultiViewGeneratorLauncherTest.class);
   private MultiViewGeneratorLauncher underTest;
   private List<TestInputTopic<String, SpanTypeOne>> inputTopics = new ArrayList<>();
   private TestOutputTopic<String, SpanTypeTwo> spanTypeTwoOutputTopic;
@@ -54,10 +59,11 @@ public class MultiViewGeneratorLauncherTest {
     StreamsBuilder streamsBuilder =
         underTest.buildTopology(mergedProps, new StreamsBuilder(), new HashMap<>());
 
+    Topology testTopology = streamsBuilder.build();
     Properties props = new Properties();
     mergedProps.forEach(props::put);
 
-    TopologyTestDriver td = new TopologyTestDriver(streamsBuilder.build(), props);
+    TopologyTestDriver td = new TopologyTestDriver(testTopology, props);
 
     Serde<SpanTypeOne> spanTypeOneSerde = new AvroSerde<>();
     spanTypeOneSerde.configure(Map.of(), false);
@@ -87,6 +93,8 @@ public class MultiViewGeneratorLauncherTest {
             "test-raw-service-type-output-topic",
             new StringSerde().deserializer(),
             rawServiceTypeSerde.deserializer());
+
+    logger.info("test topology: {}", testTopology.describe());
   }
 
   @Test

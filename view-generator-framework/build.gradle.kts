@@ -25,7 +25,7 @@ dependencies {
   testImplementation("org.junit-pioneer:junit-pioneer:2.0.0")
   testImplementation("org.mockito:mockito-core:5.2.0")
   testImplementation("org.apache.kafka:kafka-streams-test-utils:7.2.1-ccs")
-  testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:2.20.0")
+  testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j2-impl:2.20.0")
 }
 
 // Disabling compatibility check for the test avro definitions.
