@@ -59,12 +59,12 @@ public class ViewGeneratorLauncher extends KafkaStreamsApp {
             streamsBuilder.stream(
                 topic, Consumed.with(Serdes.String(), null).withName("source-" + topic));
         inputStreams.put(topic, inputStream);
-      }
 
-      if (mergedStream == null) {
-        mergedStream = inputStream;
-      } else {
-        mergedStream = mergedStream.merge(inputStream, Named.as("merged-stream"));
+        if (mergedStream == null) {
+          mergedStream = inputStream;
+        } else {
+          mergedStream = mergedStream.merge(inputStream, Named.as("merged-stream"));
+        }
       }
     }
 
