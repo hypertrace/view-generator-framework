@@ -13,7 +13,10 @@ tasks.test {
 dependencies {
   implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.60")
   implementation(platform("io.grpc:grpc-bom:1.57.2"))
-  implementation("org.apache.avro:avro:1.11.1")
+  implementation("org.apache.avro:avro:1.11.3")
+  api("org.apache.commons:commons-compress:1.24.0") {
+    because("https://nvd.nist.gov/vuln/detail/CVE-2023-42503")
+  }
   implementation("org.apache.pinot:pinot-tools:0.12.1") {
     // All these third party libraries are not used in view creation workflow.
     // They bring in lot of vulnerabilities (snyk). so, excluding unused libs
@@ -52,7 +55,7 @@ dependencies {
     implementation("org.apache.calcite:calcite-babel:1.34.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.apache.spark:spark-launcher_2.12:3.4.1")
-    implementation("org.xerial.snappy:snappy-java:1.1.10.4")
+    implementation("org.xerial.snappy:snappy-java:1.1.10.5")
     implementation("com.google.protobuf:protobuf-java-util:3.16.3")
     implementation("org.codehaus.janino:janino:3.1.9")
   }
