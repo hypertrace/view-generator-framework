@@ -11,7 +11,7 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.60")
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.62")
   implementation(platform("io.grpc:grpc-bom:1.57.2"))
   implementation("org.apache.avro:avro:1.11.3")
   api("org.apache.commons:commons-compress:1.24.0") {

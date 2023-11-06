@@ -11,8 +11,8 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.60")
-  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.3.8")
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.62")
+  implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.4.3")
   implementation("org.hypertrace.core.kafkastreams.framework:avro-partitioners:0.2.13")
   implementation("org.apache.avro:avro:1.11.1")
   implementation("com.typesafe:config:1.4.2")
