@@ -59,7 +59,7 @@ dependencies {
     implementation("com.google.protobuf:protobuf-java-util:3.16.3")
     implementation("org.codehaus.janino:janino:3.1.9")
   }
-  implementation(platform("io.netty:netty-bom:4.1.94.Final"))
+  implementation(platform("io.netty:netty-bom:4.1.100.Final"))
   implementation(platform("org.glassfish.jersey:jersey-bom:2.40"))
   implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.6.21"))
 
