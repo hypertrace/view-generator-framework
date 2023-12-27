@@ -11,8 +11,8 @@ tasks.test {
 }
 
 dependencies {
-  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.62")
-  implementation(platform("io.grpc:grpc-bom:1.57.2"))
+  implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.64")
+  implementation(platform("io.grpc:grpc-bom:1.60.0"))
   implementation("org.apache.avro:avro:1.11.3")
   api("org.apache.commons:commons-compress:1.24.0") {
     because("https://nvd.nist.gov/vuln/detail/CVE-2023-42503")

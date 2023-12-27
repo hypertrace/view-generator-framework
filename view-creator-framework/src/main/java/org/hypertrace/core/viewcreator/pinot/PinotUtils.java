@@ -265,9 +265,16 @@ public class PinotUtils {
           Object defaultVal = field.defaultVal();
           // Replace the avro generated defaults in certain cases
           if (field.schema().getType().equals(Type.MAP)) {
-            // A map is split into two multivalued string cols, use an empty string default for each
-            // TODO - why not use null and let pinot decide?
-            defaultVal = "";
+            // A map is split into two multivalued cols
+            if (convertedSpec.getName().endsWith(PINOT_SCHEMA_MAP_VALUES_SUFFIX)) {
+              // We don't delegate selection of default to pinot default because its internal
+              // defaults don't necessarily work for us. For example, it sets minimum value possible
+              // for numerical fields but that is prone to messing up querying, we prefer default 0
+              defaultVal = getDefaultValueForMapValueType(field.schema().getValueType().getType());
+            } else {
+              // keys are always strings in avro
+              defaultVal = "";
+            }
           } else if (defaultVal == JsonProperties.NULL_VALUE) {
             defaultVal = null;
           } else if (!AvroUtils.isSingleValueField(field)
@@ -302,6 +309,23 @@ public class PinotUtils {
               + Type.LONG
               + ", Actual: "
               + field.schema().getType());
+    }
+  }
+
+  public static Object getDefaultValueForMapValueType(Type type) {
+    switch (type) {
+      case STRING:
+        return "";
+      case INT:
+        return 0;
+      case LONG:
+        return 0L;
+      case FLOAT:
+        return 0.0f;
+      case DOUBLE:
+        return 0.0d;
+      default:
+        throw new RuntimeException("Unsupported type for map value: " + type);
     }
   }
 

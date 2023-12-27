@@ -62,7 +62,7 @@ public class PinotUtilsTest {
     LOGGER.info("Convert Pinot Schema from View: {}", pinotSchema);
     assertEquals(viewCreationSpec.getViewName(), pinotSchema.getSchemaName());
     // creation_time_millis not included in dimension columns
-    assertEquals(5, pinotSchema.getDimensionNames().size());
+    assertEquals(7, pinotSchema.getDimensionNames().size());
     assertEquals(1, pinotSchema.getMetricFieldSpecs().size());
     assertEquals(DataType.STRING, pinotSchema.getDimensionSpec("name").getDataType());
     assertEquals(DataType.BYTES, pinotSchema.getDimensionSpec("id_sha").getDataType());
@@ -73,7 +73,13 @@ public class PinotUtilsTest {
     assertEquals("", pinotSchema.getDimensionSpec("properties__KEYS").getDefaultNullValue());
     assertFalse(pinotSchema.getDimensionSpec("properties__VALUES").isSingleValueField());
     assertEquals(DataType.STRING, pinotSchema.getDimensionSpec("properties__VALUES").getDataType());
-    assertEquals("", pinotSchema.getDimensionSpec("properties__KEYS").getDefaultNullValue());
+    assertEquals("", pinotSchema.getDimensionSpec("properties__VALUES").getDefaultNullValue());
+    assertFalse(pinotSchema.getDimensionSpec("scores__KEYS").isSingleValueField());
+    assertEquals(DataType.STRING, pinotSchema.getDimensionSpec("scores__KEYS").getDataType());
+    assertEquals("", pinotSchema.getDimensionSpec("scores__KEYS").getDefaultNullValue());
+    assertFalse(pinotSchema.getDimensionSpec("scores__VALUES").isSingleValueField());
+    assertEquals(DataType.DOUBLE, pinotSchema.getDimensionSpec("scores__VALUES").getDataType());
+    assertEquals(0.0d, pinotSchema.getDimensionSpec("scores__VALUES").getDefaultNullValue());
     assertEquals(
         DEFAULT_DIMENSION_NULL_VALUE_OF_STRING,
         pinotSchema.getDimensionSpec("name").getDefaultNullValue());
