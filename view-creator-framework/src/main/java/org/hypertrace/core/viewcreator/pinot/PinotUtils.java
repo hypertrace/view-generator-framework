@@ -268,9 +268,9 @@ public class PinotUtils {
             // A map is split into two multivalued cols
             if (convertedSpec.getName().endsWith(PINOT_SCHEMA_MAP_VALUES_SUFFIX)) {
               // We don't delegate selection of default to pinot default because its internal
-              // defaults
-              // don't necessarily work for us. For example, it sets minimum value possible for all
-              // numerical fields but that is prone to messing up querying, we prefer default of 0
+              // defaults don't necessarily work for us. For example, it sets minimum value possible
+              // for numerical fields but that is prone to messing up querying, we prefer default of
+              // 0
               defaultVal = getDefaultValueForMapValueType(field.schema().getValueType().getType());
             } else {
               // keys are always strings in avro
