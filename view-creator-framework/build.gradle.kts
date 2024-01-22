@@ -57,15 +57,15 @@ dependencies {
     implementation("org.apache.spark:spark-launcher_2.12:3.4.1")
     implementation("org.xerial.snappy:snappy-java:1.1.10.5")
     implementation("com.google.protobuf:protobuf-java-util:3.16.3")
-    implementation("org.codehaus.janino:janino:3.1.9")
+    implementation("org.codehaus.janino:janino:3.1.11")
   }
-  implementation(platform("io.netty:netty-bom:4.1.100.Final"))
+  implementation(platform("io.netty:netty-bom:4.1.101.Final"))
   implementation(platform("org.glassfish.jersey:jersey-bom:2.40"))
   implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.6.21"))
 
   compileOnly("org.projectlombok:lombok:1.18.26")
   annotationProcessor("org.projectlombok:lombok:1.18.26")
-  implementation("org.slf4j:slf4j-api:2.0.5")
+  implementation("org.slf4j:slf4j-api:2.0.7")
   implementation("com.typesafe:config:1.4.2")
 
   testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
