@@ -14,8 +14,8 @@ dependencies {
   implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.64")
   implementation(platform("io.grpc:grpc-bom:1.60.0"))
   implementation("org.apache.avro:avro:1.11.3")
-  api("org.apache.commons:commons-compress:1.24.0") {
-    because("https://nvd.nist.gov/vuln/detail/CVE-2023-42503")
+  api("org.apache.commons:commons-compress:1.26.0") {
+    because("https://www.tenable.com/cve/CVE-2024-25710")
   }
   implementation("org.apache.pinot:pinot-tools:0.12.1") {
     // All these third party libraries are not used in view creation workflow.
