@@ -17,7 +17,7 @@ dependencies {
   api("org.apache.commons:commons-compress:1.26.0") {
     because("https://www.tenable.com/cve/CVE-2024-25710")
   }
-  implementation("org.apache.pinot:pinot-tools:0.12.1") {
+  implementation("org.apache.pinot:pinot-tools:1.0.0") {
     // All these third party libraries are not used in view creation workflow.
     // They bring in lot of vulnerabilities (snyk). so, excluding unused libs
     exclude("com.google.protobuf", "protobuf-java")
