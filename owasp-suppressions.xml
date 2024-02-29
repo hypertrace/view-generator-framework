@@ -56,12 +56,4 @@
     <cve>CVE-2018-11770</cve>
     <cve>CVE-2018-17190</cve>
   </suppress>
-  <suppress>
-    <notes><![CDATA[
-    Dep removed in favor of newer apache http client in pinot 1.0
-   ]]></notes>
-    <packageUrl regex="true">^pkg:maven/commons\-httpclient/commons\-httpclient@.*$</packageUrl>
-    <cve>CVE-2012-5783</cve>
-    <cve>CVE-2020-13956</cve>
-  </suppress>
 </suppressions>
