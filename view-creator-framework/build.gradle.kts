@@ -17,7 +17,7 @@ dependencies {
   api("org.apache.commons:commons-compress:1.26.0") {
     because("https://www.tenable.com/cve/CVE-2024-25710")
   }
-  implementation("org.apache.pinot:pinot-tools:0.12.1") {
+  implementation("org.apache.pinot:pinot-tools:1.0.0") {
     // All these third party libraries are not used in view creation workflow.
     // They bring in lot of vulnerabilities (snyk). so, excluding unused libs
     exclude("com.google.protobuf", "protobuf-java")
@@ -29,6 +29,7 @@ dependencies {
     exclude("javax.servlet", "javax.servlet-api")
     exclude("org.apache.hadoop", "hadoop-common")
     exclude("org.apache.hadoop", "hadoop-hdfs")
+    exclude("org.apache.hadoop", "hadoop-hdfs-client")
     exclude("org.apache.helix", "helix-core")
     exclude("org.apache.httpcomponents", "httpclient")
     exclude("org.apache.kafka", "kafka_2.10")
@@ -36,9 +37,13 @@ dependencies {
     exclude("org.apache.pinot", "pinot-controller")
     exclude("org.apache.pinot", "pinot-broker")
     exclude("org.apache.pinot", "pinot-kafka-2.0")
+    exclude("org.apache.pinot", "pinot-minion-builtin-tasks")
+    exclude("org.apache.pinot", "pinot-minion")
+    exclude("org.apache.pinot", "pinot-pulsar")
     exclude("org.apache.pinot", "pinot-parquet")
     exclude("org.apache.pinot", "pinot-server")
     exclude("org.apache.pinot", "pinot-s3")
+    exclude("org.apache.spark", "spark-launcher_2.12")
     exclude("org.apache.thrift", "libthrift")
     exclude("org.apache.zookeeper", "zookeeper")
     exclude("org.glassfish.jersey.containers", "jersey-container-grizzly2-http")
@@ -54,7 +59,6 @@ dependencies {
     implementation("org.apache.calcite:calcite-core:1.34.0")
     implementation("org.apache.calcite:calcite-babel:1.34.0")
     implementation("com.google.code.gson:gson:2.10.1")
-    implementation("org.apache.spark:spark-launcher_2.12:3.4.1")
     implementation("org.xerial.snappy:snappy-java:1.1.10.5")
     implementation("com.google.protobuf:protobuf-java-util:3.16.3")
     implementation("org.codehaus.janino:janino:3.1.11")

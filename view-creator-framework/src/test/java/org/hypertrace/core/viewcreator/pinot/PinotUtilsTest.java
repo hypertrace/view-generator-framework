@@ -210,6 +210,7 @@ public class PinotUtilsTest {
     assertEquals(1, tableConfig.getValidationConfig().getReplicasPerPartitionNumber());
     assertEquals("3", tableConfig.getValidationConfig().getRetentionTimeValue());
     assertEquals("DAYS", tableConfig.getValidationConfig().getRetentionTimeUnit());
+    assertEquals("1d", tableConfig.getValidationConfig().getDeletedSegmentsRetentionPeriod());
     assertEquals(
         "BalanceNumSegmentAssignmentStrategy",
         tableConfig.getValidationConfig().getSegmentAssignmentStrategy());
