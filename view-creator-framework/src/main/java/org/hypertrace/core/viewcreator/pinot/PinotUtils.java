@@ -377,6 +377,7 @@ public class PinotUtils {
             .setNumReplicas(pinotTableSpec.getNumReplicas())
             .setRetentionTimeValue(pinotTableSpec.getRetentionTimeValue())
             .setRetentionTimeUnit(pinotTableSpec.getRetentionTimeUnit())
+            .setDeletedSegmentsRetentionPeriod(pinotTableSpec.getDeletedSegmentsRetentionPeriod())
             .setPeerSegmentDownloadScheme(pinotTableSpec.getPeerSegmentDownloadScheme())
             // Tenant configs
             .setBrokerTenant(pinotTableSpec.getBrokerTenant())
@@ -501,7 +502,11 @@ public class PinotUtils {
       tableFilterConfig = new FilterConfig(filterConfig.getString(PINOT_FILTER_FUNCTION));
     }
 
-    return new IngestionConfig(null, null, tableFilterConfig, tableTransformConfigs, null, null);
+    IngestionConfig ingestionConfig = new IngestionConfig();
+    ingestionConfig.setFilterConfig(tableFilterConfig);
+    ingestionConfig.setTransformConfigs(tableTransformConfigs);
+
+    return ingestionConfig;
   }
 
   private static TagOverrideConfig toTagOverrideConfig(Config tenantTagOverrideConfig) {

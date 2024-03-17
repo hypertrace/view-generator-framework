@@ -40,6 +40,10 @@ public class PinotTableSpec {
   // Segments config
   private int numReplicas;
   @Optional private String replicasPerPartition = "1";
+  // Apache Pinot defaults this duration to 7 days, if not set explicitly.
+  // Using 1d as the default for all tables to keep the storage space under control for deleted
+  // segments
+  @Optional private String deletedSegmentsRetentionPeriod = "1d";
   private TimeUnit timeUnit;
   private String timeColumn;
   private String retentionTimeValue;
