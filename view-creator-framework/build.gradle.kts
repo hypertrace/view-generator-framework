@@ -26,6 +26,7 @@ dependencies {
     exclude("commons-io", "commons-io")
     exclude("io.grpc", "grpc-netty-shaded")
     exclude("io.netty", "netty")
+    exclude("io.netty", "netty-bom")
     exclude("javax.servlet", "javax.servlet-api")
     exclude("org.apache.hadoop", "hadoop-common")
     exclude("org.apache.hadoop", "hadoop-hdfs")
@@ -53,6 +54,7 @@ dependencies {
     exclude("org.yaml", "snakeyaml")
     exclude("org.apache.hive", "hive-storage-api")
     exclude("org.apache.datasketches", "datasketches-java")
+    exclude("io.airlift", "aircompressor")
   }
 
   constraints {
@@ -62,8 +64,9 @@ dependencies {
     implementation("org.xerial.snappy:snappy-java:1.1.10.5")
     implementation("com.google.protobuf:protobuf-java-util:3.16.3")
     implementation("org.codehaus.janino:janino:3.1.11")
+    implementation("io.airlift:aircompressor:0.27")
   }
-  implementation(platform("io.netty:netty-bom:4.1.101.Final"))
+  implementation(platform("io.netty:netty-bom:4.1.108.Final"))
   implementation(platform("org.glassfish.jersey:jersey-bom:2.40"))
   implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.6.21"))
 
