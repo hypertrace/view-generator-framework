@@ -26,7 +26,6 @@ dependencies {
     exclude("commons-io", "commons-io")
     exclude("io.grpc", "grpc-netty-shaded")
     exclude("io.netty", "netty")
-    exclude("io.netty", "netty-bom")
     exclude("javax.servlet", "javax.servlet-api")
     exclude("org.apache.hadoop", "hadoop-common")
     exclude("org.apache.hadoop", "hadoop-hdfs")
@@ -54,7 +53,6 @@ dependencies {
     exclude("org.yaml", "snakeyaml")
     exclude("org.apache.hive", "hive-storage-api")
     exclude("org.apache.datasketches", "datasketches-java")
-    exclude("io.airlift", "aircompressor")
   }
 
   constraints {
