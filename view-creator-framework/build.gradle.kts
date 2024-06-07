@@ -67,8 +67,8 @@ dependencies {
   implementation(platform("org.glassfish.jersey:jersey-bom:2.40"))
   implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.6.21"))
 
-  compileOnly("org.projectlombok:lombok:1.18.26")
-  annotationProcessor("org.projectlombok:lombok:1.18.26")
+  compileOnly("org.projectlombok:lombok:1.18.30")
+  annotationProcessor("org.projectlombok:lombok:1.18.30")
   implementation("org.slf4j:slf4j-api:2.0.7")
   implementation("com.typesafe:config:1.4.2")
 
