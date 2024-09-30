@@ -1,6 +1,6 @@
 package org.hypertrace.core.viewgenerator;
 
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.MULTI_VIEW_GEN_JOB_CONFIG;
+import static org.hypertrace.core.viewgenerator.api.ViewGeneratorConstants.MULTI_VIEW_GEN_JOB_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;

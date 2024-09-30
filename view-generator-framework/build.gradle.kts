@@ -14,6 +14,7 @@ dependencies {
   implementation("org.hypertrace.core.serviceframework:platform-service-framework:0.1.64")
   implementation("org.hypertrace.core.kafkastreams.framework:kafka-streams-framework:0.4.7")
   implementation("org.hypertrace.core.kafkastreams.framework:avro-partitioners:0.4.7")
+  implementation("org.hypertrace.core.kafkastreams.framework:weighted-group-partitioner:0.4.7")
   implementation("org.apache.avro:avro")
   implementation("com.typesafe:config:1.4.2")
   implementation("com.google.guava:guava:32.1.2-jre")

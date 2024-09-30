@@ -5,7 +5,7 @@ import org.apache.avro.Schema;
 import org.hypertrace.core.viewgenerator.test.api.SpanTypeOne;
 import org.hypertrace.core.viewgenerator.test.api.SpanTypeTwo;
 
-public class TestViewGenerator implements JavaCodeBasedViewGenerator<SpanTypeOne, SpanTypeTwo> {
+public class TestViewGenerator implements org.hypertrace.core.viewgenerator.api.ViewGenerator<SpanTypeOne, SpanTypeTwo> {
   @Override
   public List<SpanTypeTwo> process(SpanTypeOne span) {
     return List.of(

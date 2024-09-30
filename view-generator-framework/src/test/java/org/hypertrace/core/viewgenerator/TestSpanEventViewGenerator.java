@@ -6,7 +6,7 @@ import org.hypertrace.core.viewgenerator.test.api.SpanTypeOne;
 import org.hypertrace.core.viewgenerator.test.api.SpanTypeTwo;
 
 public class TestSpanEventViewGenerator
-    implements JavaCodeBasedViewGenerator<SpanTypeOne, SpanTypeTwo> {
+    implements org.hypertrace.core.viewgenerator.api.ViewGenerator<SpanTypeOne, SpanTypeTwo> {
   @Override
   public List<SpanTypeTwo> process(SpanTypeOne span) {
     return List.of(

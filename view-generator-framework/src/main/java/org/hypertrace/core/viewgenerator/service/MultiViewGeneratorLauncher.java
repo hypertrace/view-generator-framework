@@ -1,9 +1,9 @@
 package org.hypertrace.core.viewgenerator.service;
 
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.INPUT_TOPICS_CONFIG_KEY;
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.MULTI_VIEW_GEN_JOB_CONFIG;
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.OUTPUT_TOPIC_CONFIG_KEY;
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.VIEW_GENERATORS_CONFIG;
+import static org.hypertrace.core.viewgenerator.api.ViewGeneratorConstants.INPUT_TOPICS_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.api.ViewGeneratorConstants.MULTI_VIEW_GEN_JOB_CONFIG;
+import static org.hypertrace.core.viewgenerator.api.ViewGeneratorConstants.OUTPUT_TOPIC_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.api.ViewGeneratorConstants.VIEW_GENERATORS_CONFIG;
 
 import com.typesafe.config.Config;
 import java.util.ArrayList;
@@ -31,20 +31,20 @@ public class MultiViewGeneratorLauncher extends KafkaStreamsApp {
   public StreamsBuilder buildTopology(
       Map<String, Object> properties,
       StreamsBuilder streamsBuilder,
-      Map<String, KStream<?, ?>> map) {
+      Map<String, KStream<?, ?>> inputStreams) {
 
     List<String> viewGenNames = getViewGenName(properties);
 
-    for (String viewGen : viewGenNames) {
+    for (String viewGenName : viewGenNames) {
       ConfigClient client = ConfigClientFactory.getClient();
-      Config viewGenConfig = getSubJobConfig(client, viewGen);
-      viewGenConfigs.put(viewGen, viewGenConfig);
+      Config viewGenConfig = getSubJobConfig(client, viewGenName);
+      viewGenConfigs.put(viewGenName, viewGenConfig);
 
       // build using its own job config and properties
-      ViewGeneratorLauncher viewGenJob = createViewGenJob(client, viewGen);
+      ViewGeneratorLauncher viewGenJob = createViewGenJob(client, viewGenName);
       Map<String, Object> viewGenProperties = viewGenJob.getStreamsConfig(viewGenConfig);
       viewGenProperties.put(viewGenJob.getJobConfigKey(), viewGenConfig);
-      streamsBuilder = viewGenJob.buildTopology(viewGenProperties, streamsBuilder, map);
+      streamsBuilder = viewGenJob.buildTopology(viewGenProperties, streamsBuilder, inputStreams);
 
       // retains the job specific config in main properties which is passed as context if need be.
       properties.put(viewGenJob.getJobConfigKey(), viewGenConfig);
