@@ -3,15 +3,9 @@ package org.hypertrace.core.viewcreator.pinot;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
-import javax.annotation.Nullable;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.pinot.common.auth.AuthProviderUtils;
-import org.apache.pinot.common.auth.NullAuthProvider;
-import org.apache.pinot.common.auth.StaticTokenAuthProvider;
-import org.apache.pinot.common.auth.UrlAuthProvider;
 import org.apache.pinot.common.utils.FileUploadDownloadClient;
-import org.apache.pinot.core.auth.BasicAuthUtils;
 import org.apache.pinot.spi.auth.AuthProvider;
 import org.apache.pinot.spi.data.Schema;
 import org.apache.pinot.spi.utils.CommonConstants;
@@ -171,13 +165,13 @@ public class PinotAddSchemaCommand extends AbstractBaseAdminCommand implements C
     }
 
     if (!_exec) {
-      LOGGER.warn("Dry Running Command: " + toString());
+      LOGGER.warn("Dry Running Command: {}", toString());
       LOGGER.warn("Use the -exec option to actually execute the command.");
       return true;
     }
 
     File schemaFile = new File(_schemaFile);
-    LOGGER.info("Executing command: " + toString());
+    LOGGER.info("Executing command: {}", toString());
     if (!schemaFile.exists()) {
       throw new FileNotFoundException("file does not exist, + " + _schemaFile);
     }
@@ -189,35 +183,14 @@ public class PinotAddSchemaCommand extends AbstractBaseAdminCommand implements C
               _controllerProtocol, _controllerHost, Integer.parseInt(_controllerPort)),
           schema.getSchemaName(),
           schemaFile,
-          AuthProviderUtils.toRequestHeaders(
-              makeAuthProvider(_authProvider, _authTokenUrl, _authToken, _user, _password)),
+          AuthProviderUtils.makeAuthHeaders(
+              AuthProviderUtils.makeAuthProvider(
+                  _authProvider, _authTokenUrl, _authToken, _user, _password)),
           List.of(new BasicNameValuePair("force", "true")));
     } catch (Exception e) {
-      LOGGER.error("Got Exception to upload Pinot Schema: " + schema.getSchemaName(), e);
+      LOGGER.error("Got Exception to upload Pinot Schema: {}", schema.getSchemaName(), e);
       return false;
     }
     return true;
-  }
-
-  @Nullable
-  static AuthProvider makeAuthProvider(
-      AuthProvider provider, String tokenUrl, String authToken, String user, String password) {
-    if (provider != null) {
-      return provider;
-    }
-
-    if (StringUtils.isNotBlank(tokenUrl)) {
-      return new UrlAuthProvider(tokenUrl);
-    }
-
-    if (StringUtils.isNotBlank(authToken)) {
-      return new StaticTokenAuthProvider(authToken);
-    }
-
-    if (StringUtils.isNotBlank(user)) {
-      return new StaticTokenAuthProvider(BasicAuthUtils.toBasicAuthToken(user, password));
-    }
-
-    return new NullAuthProvider();
   }
 }

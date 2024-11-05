@@ -186,7 +186,7 @@ public class PinotUtilsTest {
         requireNonNull(indexingConfig.getStarTreeIndexConfigs()).get(0);
     assertEquals(
         List.of("tenant_id", "start_time_millis"), starTreeIndexConfig.getDimensionsSplitOrder());
-    assertEquals(List.of(), starTreeIndexConfig.getSkipStarNodeCreationForDimensions());
+    assertEquals(null, starTreeIndexConfig.getSkipStarNodeCreationForDimensions());
     assertEquals(
         List.of("COUNT__name", "SUM__time_taken_millis"),
         starTreeIndexConfig.getFunctionColumnPairs());
@@ -211,9 +211,6 @@ public class PinotUtilsTest {
     assertEquals("3", tableConfig.getValidationConfig().getRetentionTimeValue());
     assertEquals("DAYS", tableConfig.getValidationConfig().getRetentionTimeUnit());
     assertEquals("1d", tableConfig.getValidationConfig().getDeletedSegmentsRetentionPeriod());
-    assertEquals(
-        "BalanceNumSegmentAssignmentStrategy",
-        tableConfig.getValidationConfig().getSegmentAssignmentStrategy());
     assertEquals("http", tableConfig.getValidationConfig().getPeerSegmentDownloadScheme());
 
     // Verify task configs
@@ -294,9 +291,6 @@ public class PinotUtilsTest {
     assertEquals(2, tableConfig.getValidationConfig().getReplicationNumber());
     assertEquals("90", tableConfig.getValidationConfig().getRetentionTimeValue());
     assertEquals("DAYS", tableConfig.getValidationConfig().getRetentionTimeUnit());
-    assertEquals(
-        "BalanceNumSegmentAssignmentStrategy",
-        tableConfig.getValidationConfig().getSegmentAssignmentStrategy());
 
     assertEquals("creation_time_millis", tableConfig.getValidationConfig().getTimeColumnName());
     // TODO: This is deprecated

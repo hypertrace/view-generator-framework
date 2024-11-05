@@ -360,7 +360,6 @@ public class PinotUtils {
         new TableConfigBuilder(tableType)
             .setTableName(pinotTableSpec.getTableName())
             .setLoadMode(pinotTableSpec.getLoadMode())
-            .setSchemaName(viewCreationSpec.getViewName())
             // Indexing related fields
             .setSortedColumn(pinotTableSpec.getSortedColumn())
             .setInvertedIndexColumns(pinotTableSpec.getInvertedIndexColumns())
@@ -425,7 +424,7 @@ public class PinotUtils {
     }
     String instanceSelectorType = getOptionalString(routingConfig, "instanceSelectorType", null);
     if (segmentPrunerTypes != null || instanceSelectorType != null) {
-      return new RoutingConfig(null, segmentPrunerTypes, instanceSelectorType);
+      return new RoutingConfig(null, segmentPrunerTypes, instanceSelectorType, false);
     }
     return null;
   }
@@ -476,6 +475,7 @@ public class PinotUtils {
                         dimensionsSplitOrder,
                         skipStarNodeCreationForDimensions,
                         functionColumnPairs,
+                        null,
                         maxLeafRecords);
                   })
               .collect(Collectors.toUnmodifiableList());

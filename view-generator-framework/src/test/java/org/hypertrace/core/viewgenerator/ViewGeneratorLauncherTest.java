@@ -14,11 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.UUID;
-
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes.StringSerde;
-import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.TestInputTopic;
@@ -157,12 +154,5 @@ public class ViewGeneratorLauncherTest {
     assertEquals("span-kind", kv.value.getSpanKind());
     assertEquals(spanStartTime, kv.value.getStartTimeMillis());
     assertEquals(spanEndTime, kv.value.getEndTimeMillis());
-  }
-
-  public static void main(String[] args) {
-    String sessionid = "81e1727b25ad8b6256f42171987a23e71f5c7aec982d6f553370a97a937cbadf_1";
-
-    System.out.println(Utils.toPositive(Utils.murmur2(sessionid.getBytes())) % 48);
-
   }
 }
