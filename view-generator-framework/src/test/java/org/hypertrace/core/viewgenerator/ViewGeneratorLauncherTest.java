@@ -1,8 +1,8 @@
 package org.hypertrace.core.viewgenerator;
 
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.DEFAULT_VIEW_GEN_JOB_CONFIG_KEY;
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.INPUT_TOPICS_CONFIG_KEY;
-import static org.hypertrace.core.viewgenerator.service.ViewGeneratorConstants.OUTPUT_TOPIC_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.api.ViewGeneratorConstants.DEFAULT_VIEW_GEN_JOB_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.api.ViewGeneratorConstants.INPUT_TOPICS_CONFIG_KEY;
+import static org.hypertrace.core.viewgenerator.api.ViewGeneratorConstants.OUTPUT_TOPIC_CONFIG_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;

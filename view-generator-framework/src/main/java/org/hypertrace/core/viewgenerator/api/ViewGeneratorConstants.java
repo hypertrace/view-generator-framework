@@ -1,4 +1,4 @@
-package org.hypertrace.core.viewgenerator.service;
+package org.hypertrace.core.viewgenerator.api;
 
 public class ViewGeneratorConstants {
 
